@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Strona główna{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <p class="card-text">Witaj na stronie głównej.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Formularz</h5>
+                    <form action="/upload" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="callsign" class="form-label">Callsign</label>
+                            <input type="text" class="form-control" id="callsign" name="callsign" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="my_locator" class="form-label">My Locator</label>
+                            <input type="text" class="form-control" id="my_locator" name="my_locator" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Choose Log File</label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Wyślij</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 
