@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Ham Log Map{% endblock %}
+
+{% block content %}
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form action="/upload" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="callsign" class="form-label">Callsign</label>
+                            <input type="text" class="form-control" id="callsign" name="callsign" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="my_locator" class="form-label">Locator</label>
+                            <input type="text" class="form-control" id="my_locator" name="my_locator" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Choose Log File (ADIF/ADI)</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".adif,.adi" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Show map</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
