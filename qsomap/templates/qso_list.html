@@ -10,6 +10,7 @@
     <!-- <script src="https://unpkg.com/leaflet-arc@1.0.0/dist/leaflet-arc.js"></script> -->
     <script src='//unpkg.com/leaflet-arc/bin/leaflet-arc.min.js'></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-image@0.4.0/leaflet-image.min.js"></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -116,6 +117,7 @@
                                             <tr>
                                                 <th>Band</th>
                                                 <th>QSOs</th>
+                                                <th>Percentage</th>
                                             </tr>
                                         </thead>
                                         <tbody id="band-list">
@@ -169,6 +171,7 @@
         var dayLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
+
         var nightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap contributors'
         });
@@ -235,18 +238,54 @@
         Object.entries(bandList)
             .sort((a, b) => b[1] - a[1])
             .forEach(([band, count]) => {
+                const color = getBandColor(band);
                 bandListElement.innerHTML += `
                     <tr>
-                        <td>${band}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background-color: ${color}; border: 1px solid #ccc;"></div>
+                                ${band}
+                            </div>
+                        </td>
                         <td>${count}</td>
+                        <td>${((count / qsos.length) * 100).toFixed(1)}%</td>
                     </tr>`;
             });
+
+        function getBandColor(band) {
+            const bandColors = {
+                '2200m': '#ff4500',  // Orange Red
+                '600m': '#1e90ff',   // Dodger Blue
+                '160m': '#7cfc00',   // Lawn Green
+                '80m': '#e550e5',    // Purple
+                '60m': '#00008b',    // Dark Blue
+                '40m': '#5959ff',    // Blue
+                '30m': '#62d962',    // Light Green
+                '20m': '#f2c40c',    // Yellow
+                '17m': '#f2f261',    // Light Yellow
+                '15m': '#cca166',    // Tan
+                '12m': '#b22222',    // Firebrick
+                '10m': '#ff69b4',    // Hot Pink
+                '6m': '#FF0000',     // Red
+                '4m': '#cc0044',     // Deep Red
+                '2m': '#FF1493',     // Deep Pink
+                '70cm': '#999900',   // Olive
+                '23cm': '#5AB8C7',   // Turquoise
+                '13cm': '#A52A2A',   // Brown
+                '3cm': '#808080',    // Gray
+                '1.25cm': '#000000', // Black
+                '2.4ghz': '#FF7F50', // Coral
+                '10ghz': '#696969',  // Dim Gray
+                'invalid': '#808080' // Gray
+            };
+            return bandColors[band] || '#808080';  // Default to gray if band not found
+        }
 
         function addMarkers() {
             qsos.forEach(qso => {
                 const marker = L.circleMarker([qso.latitude, qso.longitude], {
                     radius: 3,
-                    fillColor: document.getElementById('uniform-color-checkbox').checked ? qso.color : '#FF0000',
+                    fillColor: document.getElementById('uniform-color-checkbox').checked ? getBandColor(qso.band) : '#FF0000',
                     color: '#000',
                     weight: 1,
                     opacity: 1,
@@ -330,26 +369,35 @@
         // Add screenshot functionality
         document.getElementById('screenshot-button').addEventListener('click', function() {
             // Hide the top bar temporarily
-            const topBar = document.querySelector('.top-bar');
-            const originalDisplay = topBar.style.display;
-            topBar.style.display = 'none';
+            // const topBar = document.querySelector('.top-bar');
+            // const originalDisplay = topBar.style.display;
+            // topBar.style.display = 'none';
 
             // Use leaflet-image to capture the map
             leafletImage(map, function(err, canvas) {
-                // Show the top bar again
-                topBar.style.display = originalDisplay;
+                // // Show the top bar again
 
-                if (err) {
-                    console.error('Error capturing map:', err);
-                    alert('Failed to capture map. Please try again.');
-                    return;
-                }
+                // topBar.style.display = originalDisplay;
 
-                // Create download link
-                const link = document.createElement('a');
-                link.download = 'qso-map-' + new Date().toISOString().slice(0,10) + '.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                // if (err) {
+                //     console.error('Error capturing map:', err);
+                //     alert('Failed to capture map. Please try again.');
+                //     return;
+                // }
+                // debu
+
+                // // Create download link
+                // const link = document.createElement('a');
+                // link.download = 'qso-map-' + new Date().toISOString().slice(0,10) + '.png';
+                // link.href = canvas.toDataURL('image/png');
+                // link.click();
+                html2canvas(document.getElementById('map')).then(function(canvas) {
+  // Zapis jako JPG
+  var link = document.createElement('a');
+  link.href = canvas.toDataURL("image/jpeg");
+  link.download = 'mapa.jpg';
+  link.click();
+});
             });
         });
     </script>

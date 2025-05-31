@@ -77,6 +77,6 @@ def read_log_file(file_content):
             'color': get_band_color(band)
         }
         enhanced_qsos.append(enhanced_qso)
-        print(f"\ncall: {call}, date: {date}, time: {time}, mode: {mode}, band: {band}, grid: {grid}, dxcc: {dxcc}, latitude: {latitude}, longitude: {longitude}")
+       # print(f"\ncall: {call}, date: {date}, time: {time}, mode: {mode}, band: {band}, grid: {grid}, dxcc: {dxcc}, latitude: {latitude}, longitude: {longitude}")
     return enhanced_qsos
     # print(qso_list) 
