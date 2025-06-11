@@ -30,5 +30,12 @@ def upload_file():
                 return redirect(request.url)
         qsos = read_log_file(file_content)
         flash('Plik został przesłany pomyślnie!')
-        return render_template('qso_list.html', qsos=qsos, my_latitude=my_latitude, my_longitude=my_longitude)
+        return render_template(
+            'qso_list.html', 
+            qsos=qsos, 
+            my_latitude=my_latitude, 
+            my_longitude=my_longitude, 
+            callsign=callsign,
+            filename=file.filename
+        )
     return render_template('upload.html')

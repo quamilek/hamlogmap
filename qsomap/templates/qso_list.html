@@ -36,6 +36,20 @@
             z-index: 1000;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .top-bar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar-title {
+            margin: 0;
+            padding: 0;
+        }
+        .top-bar-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         .content-container {
             position: relative;
             z-index: 2;
@@ -72,23 +86,126 @@
             color: white;
             font-weight: bold;
         }
+        .mode-filter-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            width: 280px;
+        }
+        .mode-filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .mode-filter-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .mode-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .mode-checkbox-item label {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+        }
+        .mode-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 10px;
+            }
+            .top-bar-content {
+                flex-direction: column;
+                gap: 5px;
+            }
+            .top-bar-title {
+                text-align: center;
+                font-size: 1.2rem;
+            }
+            .top-bar-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .top-bar-controls .btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+            }
+            .mode-filter-panel {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                width: auto;
+                max-height: 40vh;
+            }
+            .mode-filter-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .mode-filter-header h5 {
+                margin: 0;
+                text-align: center;
+            }
+            .mode-filter-header .btn-group {
+                display: flex;
+                justify-content: center;
+                gap: 5px;
+            }
+            .mode-checkbox-item label {
+                font-size: 0.8em;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <div class="top-bar">
-        <div class="d-flex justify-content-between align-items-center">
-            <h1 class="h3 mb-0">QSO map</h1>
-            <div>
-                <div class="form-check form-check-inline me-2">
+        <div class="top-bar-content">
+            <h2 class="top-bar-title">QSO map - {{ callsign }} - {{ filename }}</h2>
+            <div class="top-bar-controls">
+                <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="uniform-color-checkbox">
                     <label class="form-check-label" for="uniform-color-checkbox">Color Pins Band</label>
                 </div>
-                <button id="show-stats-button" class="btn btn-primary me-2">Show Statistics</button>
-                <button id="night-mode-button" class="btn btn-dark me-2">Toggle Night Mode</button>
+                <button id="show-stats-button" class="btn btn-primary">Show Statistics</button>
+                <button id="night-mode-button" class="btn btn-dark">Toggle Night Mode</button>
             </div>
         </div>
     </div>
+
+    <!-- Add Mode Filter Panel -->
+    <div id="mode-filter" class="mode-filter-panel">
+        <div class="mode-filter-header">
+            <h5>Mode Filter</h5>
+            <button class="btn btn-sm btn-outline-secondary" id="toggle-all-modes">Select All</button>
+        </div>
+        <div class="mode-filter-content" id="mode-checkboxes">
+            <!-- Checkboxes will be added here dynamically -->
+        </div>
+    </div>
+
     <div class="content-container" style="display: none;">
         <div class="data-container">
             <div class="stats-container mb-3">
@@ -417,6 +534,119 @@
             // Add markers again with new color setting
             addMarkers();
         });
+
+        // Add mode filter functionality
+        function initializeModeFilter() {
+            const modeFilter = document.getElementById('mode-checkboxes');
+            const modes = [...new Set(qsos.map(qso => qso.mode))];
+            
+            // Sort modes with custom order
+            const modeOrder = {
+                'CW': 1,
+                'SSB': 2,
+                'FT8': 3,
+                'FT4': 4
+            };
+            
+            modes.sort((a, b) => {
+                const orderA = modeOrder[a] || 999;
+                const orderB = modeOrder[b] || 999;
+                if (orderA !== orderB) {
+                    return orderA - orderB;
+                }
+                return a.localeCompare(b);
+            });
+
+            modes.forEach(mode => {
+                const modeColor = getModeColor(mode);
+                const div = document.createElement('div');
+                div.className = 'mode-checkbox-item';
+                div.innerHTML = `
+                    <label>
+                        <input type="checkbox" class="mode-checkbox" value="${mode}" checked>
+                        <span class="mode-color-dot" style="background-color: ${modeColor}"></span>
+                        ${mode}
+                    </label>
+                `;
+                modeFilter.appendChild(div);
+            });
+
+            // Add event listeners for checkboxes
+            document.querySelectorAll('.mode-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateMarkers);
+            });
+
+            // Add event listener for toggle button
+            const toggleButton = document.getElementById('toggle-all-modes');
+            let allSelected = true; // Initial state since all checkboxes are checked by default
+
+            toggleButton.addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.mode-checkbox');
+                allSelected = !allSelected;
+                
+                checkboxes.forEach(cb => cb.checked = allSelected);
+                toggleButton.textContent = allSelected ? 'Deselect All' : 'Select All';
+                updateMarkers();
+            });
+        }
+
+        function updateMarkers() {
+            // Remove all existing markers and arcs
+            map.eachLayer((layer) => {
+                if (layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
+                    map.removeLayer(layer);
+                }
+            });
+
+            // Get selected modes
+            const selectedModes = Array.from(document.querySelectorAll('.mode-checkbox:checked'))
+                .map(cb => cb.value);
+
+            // Add markers and arcs only for selected modes
+            qsos.forEach(qso => {
+                if (selectedModes.includes(qso.mode)) {
+                    // Add marker
+                    const marker = L.circleMarker([qso.latitude, qso.longitude], {
+                        radius: 3,
+                        fillColor: document.getElementById('uniform-color-checkbox').checked ? getBandColor(qso.band) : '#FF0000',
+                        color: '#000',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                    
+                    marker.bindPopup(`
+                        <strong>${qso.call}</strong><br>
+                        Date: ${qso.date}<br>
+                        Time: ${qso.time}<br>
+                        Mode: ${qso.mode}<br>
+                        Band: ${qso.band}<br>
+                        Grid: ${qso.grid}<br>
+                        DXCC: ${qso.dxcc}
+                    `);
+                    
+                    marker.addTo(map);
+
+                    // Add arc
+                    try {
+                        L.Polyline.Arc([{{ my_latitude }}, {{ my_longitude }}], [qso.latitude, qso.longitude], {
+                            color: 'red',
+                            weight: 2,
+                            opacity: 0.5,
+                            vertices: 200
+                        }).addTo(map);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+            });
+        }
+
+        // Initialize mode filter after map is loaded
+        initializeModeFilter();
+        
+        // Update markers when uniform color checkbox changes
+        document.getElementById('uniform-color-checkbox').addEventListener('change', updateMarkers);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
