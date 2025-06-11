@@ -17,14 +17,14 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
         #map { 
-            height: 100vh;
+            flex: 1;
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
             z-index: 1;
+            margin-top: 60px;
         }
         .top-bar {
             position: fixed;
@@ -35,11 +35,13 @@
             padding: 10px 20px;
             z-index: 1000;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            height: 60px;
         }
         .top-bar-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 100%;
         }
         .top-bar-title {
             margin: 0;
@@ -131,34 +133,77 @@
             display: inline-block;
         }
         
-        /* Mobile styles */
-        @media (max-width: 768px) {
+        /* Tablet and Mobile styles */
+        @media (max-width: 1024px) {
             .top-bar {
-                padding: 10px;
+                padding: 8px 15px;
+                height: auto;
+                min-height: 60px;
             }
             .top-bar-content {
                 flex-direction: column;
-                gap: 5px;
+                gap: 8px;
             }
             .top-bar-title {
                 text-align: center;
                 font-size: 1.2rem;
+                margin-bottom: 5px;
             }
             .top-bar-controls {
                 justify-content: center;
                 flex-wrap: wrap;
+                gap: 8px;
+            }
+            .top-bar-controls .btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+                white-space: nowrap;
+            }
+            .form-check {
+                margin: 0;
+                padding: 0;
+            }
+            .form-check-label {
+                font-size: 0.9rem;
+            }
+            #map {
+                margin-top: 80px;
+            }
+        }
+
+        /* Mobile specific styles */
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 5px 10px;
+            }
+            .top-bar-content {
+                gap: 5px;
+            }
+            .top-bar-title {
+                font-size: 1.1rem;
+            }
+            .top-bar-controls {
+                gap: 5px;
             }
             .top-bar-controls .btn {
                 padding: 0.25rem 0.5rem;
-                font-size: 0.875rem;
+                font-size: 0.8rem;
+            }
+            .form-check-label {
+                font-size: 0.8rem;
+            }
+            #map {
+                margin-top: 75px;
             }
             .mode-filter-panel {
-                top: auto;
+                position: fixed;
                 bottom: 20px;
                 right: 20px;
                 left: 20px;
+                top: auto;
                 width: auto;
                 max-height: 40vh;
+                margin: 0;
             }
             .mode-filter-header {
                 flex-direction: column;
@@ -291,13 +336,40 @@
         </div>
     </div>
     <script>
-        var map = L.map('map').setView([0, 0], 2);
+        var map = L.map('map', {
+            minZoom: 2,
+            maxZoom: 18,
+            worldCopyJump: true,
+            maxBounds: [
+                [-90, -180],
+                [90, 180]
+            ],
+            maxBoundsViscosity: 1.0,
+            crs: L.CRS.EPSG3857
+        }).setView([{{ my_latitude }}, {{ my_longitude }}], 2);
+
         var dayLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            noWrap: false,
+            continuousWorld: true,
+            tileSize: 256,
+            zoomOffset: 0,
+            maxZoom: 19,
+            maxNativeZoom: 19,
+            bounds: [[-90, -180], [90, 180]],
+            tms: false
         }).addTo(map);
 
         var nightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            noWrap: false,
+            continuousWorld: true,
+            tileSize: 256,
+            zoomOffset: 0,
+            maxZoom: 19,
+            maxNativeZoom: 19,
+            bounds: [[-90, -180], [90, 180]],
+            tms: false
         });
 
         var qsos = {{ qsos|tojson }};
@@ -450,9 +522,64 @@
             return modeColors[mode] || '#95A5A6';  // Default to light gray if mode not found
         }
 
+        function drawArc(start, end) {
+            // Convert to radians
+            const startLat = start[0] * Math.PI / 180;
+            const startLng = start[1] * Math.PI / 180;
+            const endLat = end[0] * Math.PI / 180;
+            const endLng = end[1] * Math.PI / 180;
+
+            // Calculate great circle distance
+            const d = 2 * Math.asin(Math.sqrt(
+                Math.pow(Math.sin((endLat - startLat) / 2), 2) +
+                Math.cos(startLat) * Math.cos(endLat) * Math.pow(Math.sin((endLng - startLng) / 2), 2)
+            ));
+
+            // Calculate points along the great circle
+            const points = [];
+            const steps = 100;
+            for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                
+                // Calculate intermediate point using great circle formula
+                const A = Math.sin((1 - t) * d) / Math.sin(d);
+                const B = Math.sin(t * d) / Math.sin(d);
+                const x = A * Math.cos(startLat) * Math.cos(startLng) + B * Math.cos(endLat) * Math.cos(endLng);
+                const y = A * Math.cos(startLat) * Math.sin(startLng) + B * Math.cos(endLat) * Math.sin(endLng);
+                const z = A * Math.sin(startLat) + B * Math.sin(endLat);
+                
+                let lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI;
+                let lng = Math.atan2(y, x) * 180 / Math.PI;
+
+                // Adjust longitude to ensure we take the shortest path
+                const centerLng = {{ my_longitude }};
+                while (lng - centerLng > 180) lng -= 360;
+                while (lng - centerLng < -180) lng += 360;
+                
+                points.push([lat, lng]);
+            }
+
+            // Create the polyline
+            return L.polyline(points, {
+                color: 'red',
+                weight: 2,
+                opacity: 0.5
+            });
+        }
+
+        function adjustLongitude(lng, centerLng) {
+            while (lng - centerLng > 180) lng -= 360;
+            while (lng - centerLng < -180) lng += 360;
+            return lng;
+        }
+
         function addMarkers() {
+            const centerLng = {{ my_longitude }};
             qsos.forEach(qso => {
-                const marker = L.circleMarker([qso.latitude, qso.longitude], {
+                // Adjust longitude of the marker to match the arc
+                const adjustedLng = adjustLongitude(qso.longitude, centerLng);
+                
+                const marker = L.circleMarker([qso.latitude, adjustedLng], {
                     radius: 3,
                     fillColor: document.getElementById('uniform-color-checkbox').checked ? getBandColor(qso.band) : '#FF0000',
                     color: '#000',
@@ -472,6 +599,17 @@
                 `);
                 
                 marker.addTo(map);
+
+                // Draw arc using our custom function
+                try {
+                    const arc = drawArc(
+                        [{{ my_latitude }}, {{ my_longitude }}],
+                        [qso.latitude, adjustedLng]
+                    );
+                    arc.addTo(map);
+                } catch (e) {
+                    console.log(e);
+                }
             });
         }
 
@@ -482,23 +620,6 @@
             })
         }).addTo(map);
         myMarker.bindPopup('<strong>My Location</strong>');
-
-        qsos.forEach(function(qso) {
-            console.log([qso.latitude, qso.longitude]);
-            // if (qso.latitude != Nan || qso.longitude != Nan) {
-            try {
-                L.Polyline.Arc([{{ my_latitude }}, {{ my_longitude }}], [qso.latitude, qso.longitude], {
-                    color: 'red',
-                    weight: 2,
-                    opacity: 0.5,
-                    vertices: 200
-                }).addTo(map);
-            } catch (e) {
-                console.log(e);
-            }
-            // }
-            // L.Polyline.Arc([43.11667, 131.90000], [55.7522200, 37.6155600]).addTo(map);
-        });
 
         document.getElementById('night-mode-button').addEventListener('click', function() {
             if (map.hasLayer(dayLayer)) {
@@ -602,11 +723,15 @@
             const selectedModes = Array.from(document.querySelectorAll('.mode-checkbox:checked'))
                 .map(cb => cb.value);
 
+            const centerLng = {{ my_longitude }};
             // Add markers and arcs only for selected modes
             qsos.forEach(qso => {
                 if (selectedModes.includes(qso.mode)) {
+                    // Adjust longitude of the marker to match the arc
+                    const adjustedLng = adjustLongitude(qso.longitude, centerLng);
+                    
                     // Add marker
-                    const marker = L.circleMarker([qso.latitude, qso.longitude], {
+                    const marker = L.circleMarker([qso.latitude, adjustedLng], {
                         radius: 3,
                         fillColor: document.getElementById('uniform-color-checkbox').checked ? getBandColor(qso.band) : '#FF0000',
                         color: '#000',
@@ -627,14 +752,13 @@
                     
                     marker.addTo(map);
 
-                    // Add arc
+                    // Draw arc using our custom function
                     try {
-                        L.Polyline.Arc([{{ my_latitude }}, {{ my_longitude }}], [qso.latitude, qso.longitude], {
-                            color: 'red',
-                            weight: 2,
-                            opacity: 0.5,
-                            vertices: 200
-                        }).addTo(map);
+                        const arc = drawArc(
+                            [{{ my_latitude }}, {{ my_longitude }}],
+                            [qso.latitude, adjustedLng]
+                        );
+                        arc.addTo(map);
                     } catch (e) {
                         console.log(e);
                     }
