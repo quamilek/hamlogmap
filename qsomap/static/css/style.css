@@ -1,0 +1,379 @@
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#map { 
+    flex: 1;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    margin-top: 60px;
+}
+
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    height: 60px;
+}
+
+.top-bar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+.top-bar-title {
+    margin: 0;
+    padding: 0;
+}
+
+.top-bar-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-container {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.9);
+    margin: 20px;
+    margin-top: 80px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.small-marker {
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    border: 1px solid black;
+}
+
+.my-marker {
+    width: 10px;
+    height: 10px;
+    background-color: green;
+    border-radius: 50%;
+    border: 1px solid black;
+}
+
+.table-container {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 20px;
+}
+
+.mode-cell {
+    display: inline-block;
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: white;
+    font-weight: bold;
+}
+
+.dxcc-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.band-table-container {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.mode-filter-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    width: 280px;
+}
+
+.mode-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.mode-filter-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.mode-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.mode-checkbox-item label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+    .combined-filter-panel {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    width: 300px;
+}
+
+.filter-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    background: #f8f9fa;
+}
+
+.filter-tab-btn {
+    flex: 1;
+    padding: 12px 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.filter-tab-btn:hover {
+    background: #e9ecef;
+}
+
+.filter-tab-btn.active {
+    color: #0d6efd;
+    border-bottom: 2px solid #0d6efd;
+    margin-bottom: -1px;
+}
+
+.filter-tab-content {
+    display: none;
+    padding: 15px;
+}
+
+.filter-tab-content.active {
+    display: block;
+}
+
+.filter-header {
+    margin-bottom: 10px;
+}
+
+.filter-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.band-filter-panel {
+        position: fixed;
+        bottom: 280px;
+        right: 20px;
+        left: 20px;
+        top: auto;
+        width: auto;
+        max-height: 35vh;
+        margin: 0;
+    }
+    .band-filter-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .band-filter-header h5 {
+        margin: 0;
+        text-align: center;
+    }
+    .band-filter-header .btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+    .band-checkbox-item label {
+        font-size: 0.8em;
+    }
+
+.band-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.band-checkbox-item label {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.band-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.mode-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Tablet and Mobile styles */
+@media (max-width: 1024px) {
+    .top-bar {
+        padding: 8px 15px;
+        height: auto;
+        min-height: 60px;
+    }
+    .top-bar-content {
+        flex-direction: column;
+        gap: 8px;
+    }
+    .top-bar-title {
+        text-align: center;
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+    .top-bar-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .top-bar-controls .btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+    .form-check {
+        margin: 0;
+        padding: 0;
+    }
+    .form-check-label {
+        font-size: 0.9rem;
+    }
+    #map {
+        margin-top: 80px;
+    }
+}
+
+/* Mobile specific styles */
+@media (max-width: 768px) {
+    .top-bar {
+        padding: 5px 10px;
+    }
+    .top-bar-content {
+        gap: 5px;
+    }
+    .top-bar-title {
+        font-size: 1.1rem;
+    }
+    .top-bar-controls {
+        gap: 5px;
+    }
+    .top-bar-controls .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    .form-check-label {
+        font-size: 0.8rem;
+    }
+    #map {
+        margin-top: 75px;
+    
+    .combined-filter-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        top: auto;
+        width: auto;
+        max-height: 50vh;
+        margin: 0;
+    }
+
+    .filter-tabs {
+        display: flex;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .filter-tab-btn {
+        flex: 1;
+        padding: 10px 8px;
+        font-size: 0.8rem;
+    }
+
+    .filter-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .band-checkbox-item label {
+        font-size: 0.8em;
+    }
+
+
+
+}
+    .mode-filter-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        left: 20px;
+        top: auto;
+        width: auto;
+        max-height: 40vh;
+        margin: 0;
+    }
+    .mode-filter-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .mode-filter-header h5 {
+        margin: 0;
+        text-align: center;
+    }
+    .mode-filter-header .btn-group {
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+    .mode-checkbox-item label {
+        font-size: 0.8em;
+    }
+}

@@ -9,19 +9,88 @@ HamLogMap is a web application for visualizing amateur radio QSO (contact) logs 
 - Display QSO locations with customizable markers
 - Draw lines between QSO points
 - Night mode toggle
-- Statistics view
+- Statistics view (DXCC and Band statistics)
 - Band-based color coding for markers
+- Mode filter panel for selective QSO viewing
+- Responsive design for mobile devices
+- **Automatic location lookup** - If the log file doesn't contain locator information, the application automatically looks up the DXCC entity and estimates grid square coordinates based on the call sign using country file data from [country-files.com](https://www.country-files.com/)
 
-## Requirements
 
-- Python 3.x
-- Flask
-- Other dependencies listed in requirements.txt
-- Docker and Docker Compose (for containerized deployment)
+## Preview
 
-## Installation
+### Light Mode
+![HamLogMap Light Mode](readme_map_img_white.png)
 
-### Option 1: Local Installation
+### Dark Mode
+![HamLogMap Dark Mode](readme_map_img_dark.png)
+readme_map_stats.png
+
+### Statistics view
+![HamLogMap Dark Mode](readme_map_stats.png)
+
+## Installation and Running
+
+### Docker Installation (Recommended)
+
+The easiest way to get started is using Docker and Docker Compose. This method handles all dependencies automatically.
+
+#### Prerequisites
+- Docker and Docker Compose installed on your system
+
+#### Steps
+
+1. Clone the repository:
+```bash
+git clone https://github.com/quamilek/hamlogmap.git
+cd hamlogmap
+```
+
+2. Build and start the application:
+```bash
+docker-compose up --build
+```
+
+3. Open your web browser and navigate to:
+```
+http://localhost:5000
+```
+
+#### Additional Docker Commands
+
+- **Stop the application:**
+```bash
+docker-compose down
+```
+
+- **View logs:**
+```bash
+docker-compose logs -f
+```
+
+- **Restart containers:**
+```bash
+docker-compose up --build
+```
+
+#### First Startup Note ⏱️
+
+The first time you run the application, it may take a bit longer to start (1-2 minutes) because:
+- The application downloads the `countryfile` database - this is used to lookup DXCC entity information from radio call signs
+- The application estimates GRIDSQUARE coordinates if they were not provided in the uploaded log file
+
+Subsequent startups will be much faster as these data are cached.
+
+---
+
+### Local Installation
+
+If you prefer to run the application locally without Docker:
+
+#### Prerequisites
+- Python 3.7+
+- pip package manager
+
+#### Steps
 
 1. Clone the repository:
 ```bash
@@ -29,7 +98,7 @@ git clone https://github.com/yourusername/hamlogmap.git
 cd hamlogmap
 ```
 
-2. Create and activate a virtual environment (optional but recommended):
+2. Create and activate a virtual environment (recommended):
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -40,56 +109,57 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Option 2: Docker Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/hamlogmap.git
-cd hamlogmap
-```
-
-2. Build and start the containers:
-```bash
-docker-compose up --build
-```
-
-## Usage
-
-### Local Usage
-
-1. Start the Flask application:
+4. Start the Flask application:
 ```bash
 python app.py
 ```
 
-2. Open your web browser and navigate to `http://localhost:5000`
-
-### Docker Usage
-
-1. The application will be available at `http://localhost:5000` after running `docker-compose up`
-
-2. To stop the application:
-```bash
-docker-compose down
+5. Open your web browser and navigate to:
+```
+http://localhost:5000
 ```
 
-3. To view logs:
-```bash
-docker-compose logs -f
-```
+---
 
-4. To rebuild and restart the containers:
-```bash
-docker-compose up --build
-```
+## Usage
 
-3. Upload your ADIF log file through the web interface
+### Uploading a Log File
 
-4. View your QSOs on the interactive map:
-   - Toggle night mode
-   - Enable/disable band-based coloring
-   - View statistics
-   - Save map as screenshot
+1. Navigate to the upload page
+2. Enter your callsign and locator (Maidenhead grid square)
+3. Select your ADIF log file
+4. Click upload
+
+### Viewing Your QSOs
+
+Once your log is uploaded, you can:
+
+- **View the map** - See all your QSO locations plotted on an interactive map
+- **Toggle night mode** - Click the "Toggle Night Mode" button for dark map view
+- **Color by band** - Check "Color Pins Band" to color markers by frequency band instead of location
+- **Filter by mode** - Use the Mode Filter panel to show/hide specific transmission modes (CW, SSB, FT8, etc.)
+- **View statistics** - Click "Show Statistics" to see:
+  - DXCC (country) statistics
+  - Band statistics
+  - Complete QSO list with all details
+
+---
+
+## Requirements
+
+- Python 3.7+
+- Flask
+- All dependencies listed in `requirements.txt`
+- Docker and Docker Compose (for containerized deployment)
+
+
+
+## Planned Features
+
+- Download map as image 
+- Import QSOs from other formats (Cabrillo, etc.)
+- QSO filtering by date range
+- Performance optimizations for large log files (10,000+ QSOs)
 
 ## Contributing
 

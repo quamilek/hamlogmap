@@ -34,7 +34,7 @@ def get_band_color(band):
     return band_colors.get(band.lower(), '#808080')  # Default to gray if band not found
 
 def get_grid_from_call(call):
-    # Odczytanie informacji o znaku za pomocą biblioteki pyhamtools
+    # Get call sign information using pyhamtools library
     info = cic.get_all(call)
     latitude = info.get('latitude', 0)
     longitude = info.get('longitude', 0)
@@ -45,7 +45,7 @@ def get_grid_from_call(call):
     return grid
 
 def read_log_file(file_content):
-    # Odczytanie pliku logu krótkofalarskiego za pomocą biblioteki adif_io
+    # Read amateur radio log file using adif_io library
     qsos, header = adif_io.read_from_string(file_content)
     enhanced_qsos = []
     for qso in qsos:
@@ -61,6 +61,7 @@ def read_log_file(file_content):
         
         
         if not grid:
+            # If grid square is not provided, estimate it from call sign
             grid = get_grid_from_call(call)
 
         latitude, longitude = locator_to_latlong(grid)
