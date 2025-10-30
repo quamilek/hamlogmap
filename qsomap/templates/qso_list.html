@@ -88,6 +88,14 @@
             color: white;
             font-weight: bold;
         }
+        .dxcc-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .band-table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
         .mode-filter-panel {
             position: fixed;
             top: 80px;
@@ -260,8 +268,8 @@
                             <div class="col-md-6">
                                 <h5 class="card-title">DXCC Statistics</h5>
                                 <p class="card-text">Total DXCC entities: <span id="dxcc-count">0</span></p>
-                                <p class="card-text">Total QSOs: <span id="total-qso-count">0</span></p>
-                                <div class="table-responsive">
+                                <p class="card-text">Total QSOs: <span id="stats-total-qso-count">0</span></p>
+                                <div class="table-responsive dxcc-table-container">
                                     <table class="table table-sm table-striped">
                                         <thead>
                                             <tr>
@@ -278,7 +286,7 @@
                             <div class="col-md-6">
                                 <h5 class="card-title">Band Statistics</h5>
                                 <p class="card-text">Total Bands: <span id="band-count">0</span></p>
-                                <div class="table-responsive">
+                                <div class="table-responsive band-table-container">
                                     <table class="table table-sm table-striped">
                                         <thead>
                                             <tr>
@@ -376,6 +384,7 @@
         
         // Set total QSO count
         document.getElementById('total-qso-count').textContent = qsos.length;
+        document.getElementById('stats-total-qso-count').textContent = qsos.length;
         
         // Calculate DXCC statistics
         const dxccCount = new Set(qsos.map(qso => qso.dxcc)).size;
@@ -695,6 +704,34 @@
             // Add event listeners for checkboxes
             document.querySelectorAll('.mode-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', updateMarkers);
+
+        // Function to calculate contrast text color based on background
+        function getContrastColor(hexColor) {
+            // Convert hex to RGB
+            const r = parseInt(hexColor.slice(1, 3), 16);
+            const g = parseInt(hexColor.slice(3, 5), 16);
+            const b = parseInt(hexColor.slice(5, 7), 16);
+
+            // Calculate luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+            // Return black or white based on luminance
+            return luminance > 0.5 ? '#000000' : '#FFFFFF';
+        }
+
+        // Apply mode colors to table cells
+        function applyModeColors() {
+            const modeCells = document.querySelectorAll('.mode-cell');
+            modeCells.forEach(cell => {
+                const mode = cell.getAttribute('data-mode');
+                const color = getModeColor(mode);
+                cell.style.backgroundColor = color;
+                cell.style.color = '#FFFFFF'; // Always set text color to white
+            });
+        }
+
+        // Apply mode colors to table cells
+        applyModeColors();
             });
 
             // Add event listener for toggle button
@@ -771,6 +808,34 @@
         
         // Update markers when uniform color checkbox changes
         document.getElementById('uniform-color-checkbox').addEventListener('change', updateMarkers);
+
+        // Function to calculate contrast text color based on background
+        function getContrastColor(hexColor) {
+            // Convert hex to RGB
+            const r = parseInt(hexColor.slice(1, 3), 16);
+            const g = parseInt(hexColor.slice(3, 5), 16);
+            const b = parseInt(hexColor.slice(5, 7), 16);
+
+            // Calculate luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+            // Return black or white based on luminance
+            return luminance > 0.5 ? '#000000' : '#FFFFFF';
+        }
+
+        // Apply mode colors to table cells
+        function applyModeColors() {
+            const modeCells = document.querySelectorAll('.mode-cell');
+            modeCells.forEach(cell => {
+                const mode = cell.getAttribute('data-mode');
+                const color = getModeColor(mode);
+                cell.style.backgroundColor = color;
+                cell.style.color = getContrastColor(color);
+            });
+        }
+
+        // Apply mode colors to table cells after DOM is ready
+        applyModeColors();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -10,26 +10,26 @@ upload_bp = Blueprint('upload', __name__)
 def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
-            flash('Nie wybrano pliku')
+            flash('No file selected')
             return redirect(request.url)
         file = request.files['file']
         if file.filename == '':
-            flash('Nie wybrano pliku')
+            flash('No file selected')
             return redirect(request.url)
         callsign = request.form.get('callsign')
         my_locator = request.form.get('my_locator')
         my_latitude, my_longitude = locator_to_latlong(my_locator)
-        # Odczytanie treści pliku i przekazanie jej do metody read_log_file
+
         try:
             file_content = file.read().decode('utf-8')
         except UnicodeDecodeError:
             try:
                 file_content = file.read().decode('latin-1')
             except UnicodeDecodeError:
-                flash('Nie można odczytać pliku. Upewnij się, że plik jest w formacie tekstowym.')
+                flash('Cannot read file. Please ensure the file is in text format.')
                 return redirect(request.url)
         qsos = read_log_file(file_content)
-        flash('Plik został przesłany pomyślnie!')
+        flash('File uploaded successfully!')
         return render_template(
             'qso_list.html', 
             qsos=qsos, 

@@ -9,10 +9,8 @@ HamLogMap is a web application for visualizing amateur radio QSO (contact) logs 
 - Display QSO locations with customizable markers
 - Draw lines between QSO points
 - Night mode toggle
-- Map screenshot capability
 - Statistics view
 - Band-based color coding for markers
-- Responsive design
 
 ## Requirements
 
@@ -95,7 +93,7 @@ docker-compose up --build
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request or create an issue.
 
 ## License
 
