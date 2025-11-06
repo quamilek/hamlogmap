@@ -32,8 +32,10 @@ class TestFlaskApplication:
     def test_upload_get_route(self, client):
         """Test GET request to upload endpoint."""
         response = client.get('/upload')
-        # Should redirect or return the upload form
-        assert response.status_code in [200, 302, 404]  # Depending on implementation
+        # Should return the main upload form page
+        assert response.status_code == 200
+        assert b'Callsign' in response.data
+        assert b'Locator' in response.data
 
     @pytest.mark.unit
     def test_upload_post_no_file(self, client):
@@ -42,7 +44,7 @@ class TestFlaskApplication:
             'callsign': 'SP1ABC',
             'my_locator': 'JO90AA'
         }, follow_redirects=True)
-        
+
         # Should redirect with error message
         assert response.status_code == 200
         assert b'No file selected' in response.data or b'file' in response.data.lower()
@@ -51,13 +53,13 @@ class TestFlaskApplication:
     def test_upload_post_empty_filename(self, client):
         """Test POST to upload endpoint with empty filename."""
         from io import BytesIO
-        
+
         response = client.post('/upload', data={
             'callsign': 'SP1ABC',
             'my_locator': 'JO90AA',
             'file': (BytesIO(b''), '')
         }, follow_redirects=True)
-        
+
         assert response.status_code == 200
         assert b'No file selected' in response.data or b'file' in response.data.lower()
 
@@ -65,37 +67,37 @@ class TestFlaskApplication:
     def test_upload_post_invalid_file_type(self, client):
         """Test POST to upload endpoint with invalid file type."""
         from io import BytesIO
-        
+
         response = client.post('/upload', data={
             'callsign': 'SP1ABC',
             'my_locator': 'JO90AA',
             'file': (BytesIO(b'invalid content'), 'test.txt')
         }, follow_redirects=True)
-        
+
         assert response.status_code == 200
-        assert (b'Invalid file type' in response.data or 
-                b'ADIF' in response.data or 
+        assert (b'Invalid file type' in response.data or
+                b'ADIF' in response.data or
                 b'ADI' in response.data)
 
     @pytest.mark.integration
     def test_upload_post_valid_adif_file(self, client):
         """Test POST to upload endpoint with valid ADIF file."""
         from io import BytesIO
-        
-        # Sample ADIF content
+
+        # Sample ADIF content with test callsigns that have grid squares provided
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
 
-<QSO_DATE:8>20241101<TIME_ON:6>120000<CALL:6>DL1ABC<BAND:3>20m<MODE:3>CW<GRIDSQUARE:6>JO62AA<EOR>
-<QSO_DATE:8>20241101<TIME_ON:6>130000<CALL:6>F1DEF<BAND:3>40m<MODE:3>SSB<GRIDSQUARE:6>JN23AA<EOR>
+<QSO_DATE:8>20241101<TIME_ON:6>120000<CALL:6>SP0ABC<BAND:3>20m<MODE:2>CW<GRIDSQUARE:6>JO62AA<EOR>
+<QSO_DATE:8>20241101<TIME_ON:6>130000<CALL:6>TEST02<BAND:3>40m<MODE:3>SSB<GRIDSQUARE:6>JN23AA<EOR>
 """
-        
+
         response = client.post('/upload', data={
             'callsign': 'SP1ABC',
             'my_locator': 'JO90AA',
             'file': (BytesIO(adif_content.encode('utf-8')), 'test.adif')
         }, follow_redirects=True)
-        
+
         # Should successfully process the file
         assert response.status_code == 200
 

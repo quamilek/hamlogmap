@@ -20,12 +20,12 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Python 3.14
       uses: actions/setup-python@v5
       with:
         python-version: "3.14"
-        
+
     - name: Cache pip dependencies
       uses: actions/cache@v4
       with:
@@ -33,33 +33,33 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
-          
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
+
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv,env,.venv,.env
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=venv,env,.venv,.env
-        
+
     - name: Run unit tests
       run: |
         python -m pytest tests/ -v --tb=short -m "unit" --maxfail=5
-        
+
     - name: Run integration tests
       run: |
         python -m pytest tests/ -v --tb=short -m "integration" --maxfail=5
       continue-on-error: true  # Integration tests may fail due to external dependencies
-      
+
     - name: Run all tests with coverage
       run: |
         python -m pytest tests/ -v --tb=short --cov=qsomap --cov-report=xml --cov-report=term-missing
-        
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
@@ -76,18 +76,18 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      
+
     - name: Build and test Docker image
       run: |
         docker build --target test -t hamlogmap:test .
-        
+
     - name: Run tests in Docker
       run: |
         docker run --rm hamlogmap:test
-        
+
     - name: Build production Docker image
       run: |
         docker build --target production -t hamlogmap:latest .

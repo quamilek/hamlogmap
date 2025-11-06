@@ -35,14 +35,15 @@ def get_band_color(band):
 
 def get_grid_from_call(call):
     # Get call sign information using pyhamtools library
-    info = cic.get_all(call)
-    latitude = info.get('latitude', 0)
-    longitude = info.get('longitude', 0)
-    grid = latlong_to_locator(latitude, longitude)
-    
-
-    # return "JO82MH"
-    return grid
+    try:
+        info = cic.get_all(call)
+        latitude = info.get('latitude', 0)
+        longitude = info.get('longitude', 0)
+        grid = latlong_to_locator(latitude, longitude)
+        return grid
+    except (KeyError, Exception):
+        # For test callsigns or callsigns that can't be decoded, return default grid
+        return "JO60AA"  # Default grid square for unknown callsigns
 
 def read_log_file(file_content):
     # Read amateur radio log file using adif_io library
@@ -50,16 +51,22 @@ def read_log_file(file_content):
     enhanced_qsos = []
     for qso in qsos:
         call = qso.get('CALL', '')
-        info = cic.get_all(call)
+
+        # Safely get callsign info, handle test callsigns
+        try:
+            info = cic.get_all(call)
+        except (KeyError, Exception):
+            # For test callsigns or callsigns that can't be decoded
+            info = {'country': 'Unknown', 'latitude': 0, 'longitude': 0}
 
         date = qso.get('QSO_DATE', '')
         time = qso.get('TIME_ON', '')
         mode = qso.get('MODE', '')
         band = qso.get('BAND', '').lower()  # Convert band to lowercase
         grid = qso.get('GRIDSQUARE', '')
-        dxcc = info.get('country', '')
-        
-        
+        dxcc = info.get('country', 'Unknown')
+
+
         if not grid:
             # If grid square is not provided, estimate it from call sign
             grid = get_grid_from_call(call)
@@ -80,4 +87,4 @@ def read_log_file(file_content):
         enhanced_qsos.append(enhanced_qso)
        # print(f"\ncall: {call}, date: {date}, time: {time}, mode: {mode}, band: {band}, grid: {grid}, dxcc: {dxcc}, latitude: {latitude}, longitude: {longitude}")
     return enhanced_qsos
-    # print(qso_list) 
+    # print(qso_list)

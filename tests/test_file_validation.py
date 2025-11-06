@@ -21,7 +21,7 @@ class TestFileValidation:
             'file.ADIF',
             'log.ADI'
         ]
-        
+
         for filename in valid_files:
             assert allowed_file(filename), f"File '{filename}' should be allowed"
 
@@ -37,7 +37,7 @@ class TestFileValidation:
             'invalid.log',
             'file.xml'
         ]
-        
+
         for filename in invalid_files:
             assert not allowed_file(filename), f"File '{filename}' should not be allowed"
 
@@ -50,7 +50,7 @@ class TestFileValidation:
             'adif',
             'adi'
         ]
-        
+
         for filename in files_without_extension:
             assert not allowed_file(filename), f"File '{filename}' should not be allowed"
 
@@ -72,7 +72,7 @@ class TestFileValidation:
             'test.Adi',
             'test.aDi'
         ]
-        
+
         for filename in case_variants:
             assert allowed_file(filename), f"File '{filename}' should be allowed (case insensitive)"
 
@@ -85,7 +85,7 @@ class TestFileValidation:
             'contest.2024.adif',
             'log.file.name.adi'
         ]
-        
+
         for filename in files_with_multiple_dots:
             assert allowed_file(filename), f"File '{filename}' should be allowed"
 
@@ -100,7 +100,7 @@ class TestFileValidation:
             ('adif.txt', False),       # Extension looks like valid but isn't
             ('adi.exe', False)         # Extension looks like valid but isn't
         ]
-        
+
         for filename, expected in edge_cases:
             result = allowed_file(filename)
             assert result == expected, f"File '{filename}' expected {expected}, got {result}"

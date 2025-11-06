@@ -46,4 +46,4 @@ def upload_file():
             callsign=callsign,
             filename=file.filename
         )
-    return render_template('upload.html')
+    return render_template('main.html')
