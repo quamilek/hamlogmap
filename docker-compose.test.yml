@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  hamlogmap-tests:
+    build:
+      context: .
+      target: test
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
+    command: python -m pytest tests/ -v --tb=short

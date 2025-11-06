@@ -23,7 +23,6 @@ HamLogMap is a web application for visualizing amateur radio QSO (contact) logs 
 
 ### Dark Mode
 ![HamLogMap Dark Mode](readme_map_img_dark.png)
-readme_map_stats.png
 
 ### Statistics view
 ![HamLogMap Dark Mode](readme_map_stats.png)
@@ -145,10 +144,58 @@ Once your log is uploaded, you can:
 
 ---
 
+## Testing
+
+HamLogMap includes a comprehensive test suite to ensure code quality and functionality.
+
+### Running Tests
+
+#### Quick Test (No Dependencies)
+```bash
+make test-standalone
+```
+
+#### Full Test Suite (Local)
+```bash
+# Install dependencies first
+make install
+
+# Run all tests
+make test
+
+# Run specific test types
+make test-unit           # Unit tests only
+make test-integration    # Integration tests only
+make test-coverage       # With coverage report
+```
+
+#### Docker Tests
+```bash
+make test-docker
+```
+
+#### Available Test Commands
+- `make test` - Run all tests
+- `make test-unit` - Run only unit tests (fast)
+- `make test-integration` - Run integration tests (may require internet)
+- `make test-coverage` - Run tests with HTML coverage report
+- `make test-standalone` - Run basic tests without any dependencies
+- `make lint` - Code style checking with flake8
+
+### CI/CD
+
+Tests are automatically run on GitHub Actions for every push and pull request, including:
+- Unit and integration tests
+- Code linting
+- Docker build verification
+- Coverage reporting
+
+---
+
 ## Requirements
 
-- Python 3.7+
-- Flask
+- Python 3.14+
+- Flask 3.1+
 - All dependencies listed in `requirements.txt`
 - Docker and Docker Compose (for containerized deployment)
 
@@ -156,7 +203,7 @@ Once your log is uploaded, you can:
 
 ## Planned Features
 
-- Download map as image 
+- Download map as image
 - Import QSOs from other formats (Cabrillo, etc.)
 - QSO filtering by date range
 - Performance optimizations for large log files (10,000+ QSOs)
@@ -167,4 +214,4 @@ Contributions are welcome! Please feel free to submit a Pull Request or create a
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.

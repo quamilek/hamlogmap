@@ -39,10 +39,10 @@ def upload_file():
         qsos = read_log_file(file_content)
         flash('File uploaded successfully!')
         return render_template(
-            'qso_list.html', 
-            qsos=qsos, 
-            my_latitude=my_latitude, 
-            my_longitude=my_longitude, 
+            'qso_list.html',
+            qsos=qsos,
+            my_latitude=my_latitude,
+            my_longitude=my_longitude,
             callsign=callsign,
             filename=file.filename
         )
