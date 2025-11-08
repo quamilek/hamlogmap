@@ -21,5 +21,5 @@ RUN python -m pytest tests/ -v --tb=short
 
 # Production stage
 FROM base as production
-EXPOSE 5000
+EXPOSE 5050
 CMD ["python", "app.py"]

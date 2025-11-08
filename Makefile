@@ -46,7 +46,7 @@ docker-build:  ## Build Docker image
 	docker build -t hamlogmap:latest .
 
 docker-run:  ## Run Docker container
-	docker run -p 5000:5000 hamlogmap:latest
+	docker run -p 5050:5050 hamlogmap:latest
 
 docker-test-build:  ## Build Docker test image
 	docker build --target test -t hamlogmap:test .

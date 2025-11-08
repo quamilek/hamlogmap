@@ -56,7 +56,7 @@ docker-compose up --build
 
 3. Open your web browser and navigate to:
 ```
-http://localhost:5000
+http://localhost:5050
 ```
 
 #### Additional Docker Commands
@@ -120,7 +120,7 @@ python app.py
 
 5. Open your web browser and navigate to:
 ```
-http://localhost:5000
+http://localhost:5050
 ```
 
 ---
