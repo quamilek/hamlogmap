@@ -242,6 +242,10 @@ function adjustLongitude(lng, centerLng) {
 
 function addMarkers() {
     const centerLng = window.mapData.my_longitude;
+    // Check if lines should be hidden
+    const hideLinesCheckbox = document.getElementById('hide-lines-checkbox');
+    const hideLines = hideLinesCheckbox && hideLinesCheckbox.checked;
+    
     qsos.forEach(qso => {
         // Adjust longitude of the marker to match the arc
         const adjustedLng = adjustLongitude(qso.longitude, centerLng);
@@ -267,15 +271,17 @@ function addMarkers() {
         
         marker.addTo(map);
 
-        // Draw arc using our custom function
-        try {
-            const arc = drawArc(
-                [window.mapData.my_latitude, window.mapData.my_longitude],
-                [qso.latitude, adjustedLng]
-            );
-            arc.addTo(map);
-        } catch (e) {
-            console.log(e);
+        // Draw arc only if lines are not hidden
+        if (!hideLines) {
+            try {
+                const arc = drawArc(
+                    [window.mapData.my_latitude, window.mapData.my_longitude],
+                    [qso.latitude, adjustedLng]
+                );
+                arc.addTo(map);
+            } catch (e) {
+                console.log(e);
+            }
         }
     });
 }
@@ -422,6 +428,10 @@ function updateMarkers() {
     const selectedBands = Array.from(document.querySelectorAll('.band-checkbox:checked'))
         .map(cb => cb.value);
 
+    // Check if lines should be hidden
+    const hideLinesCheckbox = document.getElementById('hide-lines-checkbox');
+    const hideLines = hideLinesCheckbox && hideLinesCheckbox.checked;
+
     const centerLng = window.mapData.my_longitude;
     // Add markers and arcs only for selected modes and bands
     qsos.forEach(qso => {
@@ -451,15 +461,17 @@ function updateMarkers() {
             
             marker.addTo(map);
 
-            // Draw arc using our custom function
-            try {
-                const arc = drawArc(
-                    [window.mapData.my_latitude, window.mapData.my_longitude],
-                    [qso.latitude, adjustedLng]
-                );
-                arc.addTo(map);
-            } catch (e) {
-                console.log(e);
+            // Draw arc only if lines are not hidden
+            if (!hideLines) {
+                try {
+                    const arc = drawArc(
+                        [window.mapData.my_latitude, window.mapData.my_longitude],
+                        [qso.latitude, adjustedLng]
+                    );
+                    arc.addTo(map);
+                } catch (e) {
+                    console.log(e);
+                }
             }
         }
     });
@@ -538,3 +550,6 @@ initializeBandFilter();
 
 // Update markers when uniform color checkbox changes
 document.getElementById('uniform-color-checkbox').addEventListener('change', updateMarkers);
+
+// Add event listener for hide lines checkbox
+document.getElementById('hide-lines-checkbox').addEventListener('change', updateMarkers);
