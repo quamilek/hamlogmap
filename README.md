@@ -16,15 +16,21 @@ HamLogMap is a web application for visualizing amateur radio QSO (contact) logs 
 ## Features
 
 - Upload and parse ADIF log files
-- Interactive map visualization using Leaflet.js
+- Interactive map visualization
+- Mode filter panel for selective QSO viewing
+- Statistics view (DXCC and Band statistics)
 - Display QSO locations with customizable markers
 - Draw lines between QSO points
-- Night mode toggle
-- Statistics view (DXCC and Band statistics)
 - Band-based color coding for markers
-- Mode filter panel for selective QSO viewing
-- Responsive design for mobile devices
+- Night mode toggle
 - **Automatic location lookup** - If the log file doesn't contain locator information, the application automatically looks up the DXCC entity and estimates grid square coordinates based on the call sign using country file data from [country-files.com](https://www.country-files.com/)
+
+## Planned Features
+
+- Download map as image
+- Import QSOs from other formats (Cabrillo, etc.)
+- QSO filtering by date range
+- Performance optimizations for large log files (10,000+ QSOs)
 
 ## Installation and Running
 
@@ -200,12 +206,7 @@ Tests are automatically run on GitHub Actions for every push and pull request, i
 
 
 
-## Planned Features
 
-- Download map as image
-- Import QSOs from other formats (Cabrillo, etc.)
-- QSO filtering by date range
-- Performance optimizations for large log files (10,000+ QSOs)
 
 ## Contributing
 
