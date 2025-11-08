@@ -1,6 +1,7 @@
 import adif_io
 from pyhamtools import LookupLib, Callinfo
 from pyhamtools.locator import latlong_to_locator, locator_to_latlong
+from .grid_validator import validate_grid_square
 
 my_lookuplib = LookupLib(lookuptype="countryfile")
 cic = Callinfo(my_lookuplib)
@@ -69,6 +70,11 @@ def read_log_file(file_content):
 
         if not grid:
             # If grid square is not provided, estimate it from call sign
+            grid = get_grid_from_call(call)
+
+        # Validate grid square format
+        if not validate_grid_square(grid):
+            # If grid is invalid, try to get it from call sign
             grid = get_grid_from_call(call)
 
         latitude, longitude = locator_to_latlong(grid)

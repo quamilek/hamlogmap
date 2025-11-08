@@ -8,7 +8,8 @@ def safe_import_log_reader():
     """Safely import log reader functions, skip tests if dependencies missing."""
     try:
         from qsomap.common.log_reader import read_log_file, get_band_color, get_grid_from_call
-        return read_log_file, get_band_color, get_grid_from_call
+        from qsomap.common.grid_validator import validate_grid_square
+        return read_log_file, get_band_color, get_grid_from_call, validate_grid_square
     except ImportError as e:
         pytest.skip(f"Skipping tests due to missing dependencies: {e}")
 
@@ -104,7 +105,7 @@ class TestLogReader:
     @pytest.mark.integration
     def test_get_grid_from_call_valid_callsign(self):
         """Test grid square lookup from valid callsign."""
-        read_log_file, get_band_color, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         # Test with test callsign - should return default grid
         grid = get_grid_from_call('SP0ABC')
@@ -116,7 +117,7 @@ class TestLogReader:
     @pytest.mark.unit
     def test_read_log_file_simple_adif(self):
         """Test reading a simple ADIF log file."""
-        read_log_file, get_band_color_func, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
@@ -143,7 +144,7 @@ class TestLogReader:
     @pytest.mark.unit
     def test_read_log_file_multiple_qsos(self):
         """Test reading ADIF file with multiple QSOs."""
-        read_log_file, get_band_color_func, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
@@ -175,7 +176,7 @@ class TestLogReader:
     @pytest.mark.unit
     def test_read_log_file_missing_fields(self):
         """Test reading ADIF file with missing optional fields."""
-        read_log_file, get_band_color_func, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
@@ -198,7 +199,7 @@ class TestLogReader:
     @pytest.mark.unit
     def test_read_log_file_empty_content(self):
         """Test reading empty ADIF content."""
-        read_log_file, get_band_color_func, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
@@ -210,7 +211,7 @@ class TestLogReader:
     @pytest.mark.unit
     def test_read_log_file_band_case_conversion(self):
         """Test that band values are converted to lowercase."""
-        read_log_file, get_band_color_func, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
@@ -227,7 +228,7 @@ class TestLogReader:
     @pytest.mark.integration
     def test_read_log_file_without_grid_square(self):
         """Test QSO processing when grid square is missing."""
-        read_log_file, get_band_color_func, get_grid_from_call = safe_import_log_reader()
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
 
         adif_content = """<ADIF_VER:5>3.1.4
 <EOH>
@@ -246,3 +247,24 @@ class TestLogReader:
         assert 'longitude' in qso
         assert qso['call'] == 'SP0ABC'
         assert normalize_mode(qso['mode']) == 'CW'
+
+    @pytest.mark.integration
+    def test_read_log_file_with_invalid_grid_square(self):
+        """Test QSO processing when grid square is invalid."""
+        read_log_file, get_band_color_func, get_grid_from_call, validate_grid_square = safe_import_log_reader()
+
+        adif_content = """<ADIF_VER:5>3.1.4
+<EOH>
+
+<CALL:6>SP0ABC<BAND:3>20m<MODE:2>CW<GRIDSQUARE:8>INVALID1<EOR>
+"""
+
+        qsos = read_log_file(adif_content)
+
+        assert len(qsos) == 1
+        qso = qsos[0]
+
+        # Should have replaced invalid grid with valid one
+        assert 'grid' in qso
+        assert validate_grid_square(qso['grid']), f"Final grid '{qso['grid']}' should be valid"
+        assert qso['call'] == 'SP0ABC'
