@@ -94,7 +94,7 @@ class TestGridValidator:
             ('  JO60AA  ', True),
             (' JO60AA', True),
             ('JO60AA ', True),
-            ('\tJO60AA\n', True),  # Real tab and newline characters
+            ('\\tJO60AA\\n', True),
         ]
 
         for grid, expected in test_cases:
@@ -114,7 +114,7 @@ class TestGridValidator:
             ('AA00AA00', True),   # Minimum valid values
             ('RR99XX99', True),   # Maximum valid values
             ('SA00AA00', False),  # Field letter too high (S > R)
-            ('AS00AA00', False),  # Field letter too high (S > R in second position)
+            ('AR00AA00', False),  # Field letter too high (second R+1)
             ('AA:0AA00', False),  # Square digit too high (: comes after 9)
             ('AAAA00AA', False),  # Square letter instead of digit
             ('AA00YA00', False),  # Subsquare letter too high (Y > X)

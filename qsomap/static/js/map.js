@@ -82,7 +82,7 @@ Object.entries(dxccList)
                 };
                 const orderA = order[a[0]] || 999;  // Default high number for other modes
                 const orderB = order[b[0]] || 999;
-                
+
                 if (orderA !== orderB) {
                     return orderA - orderB;
                 }
@@ -94,7 +94,7 @@ Object.entries(dxccList)
                 return `<div style="background-color: ${modeColor}; color: white; padding: 2px 5px; border-radius: 3px; margin: 2px; display: inline-block;">${mode}: ${count}</div>`;
             })
             .join('');
-        
+
         dxccListElement.innerHTML += `
             <tr>
                 <td>${dxcc}</td>
@@ -207,14 +207,14 @@ function drawArc(start, end) {
     const steps = 100;
     for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        
+
         // Calculate intermediate point using great circle formula
         const A = Math.sin((1 - t) * d) / Math.sin(d);
         const B = Math.sin(t * d) / Math.sin(d);
         const x = A * Math.cos(startLat) * Math.cos(startLng) + B * Math.cos(endLat) * Math.cos(endLng);
         const y = A * Math.cos(startLat) * Math.sin(startLng) + B * Math.cos(endLat) * Math.sin(endLng);
         const z = A * Math.sin(startLat) + B * Math.sin(endLat);
-        
+
         let lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI;
         let lng = Math.atan2(y, x) * 180 / Math.PI;
 
@@ -222,7 +222,7 @@ function drawArc(start, end) {
         const centerLng = window.mapData.my_longitude;
         while (lng - centerLng > 180) lng -= 360;
         while (lng - centerLng < -180) lng += 360;
-        
+
         points.push([lat, lng]);
     }
 
@@ -245,11 +245,11 @@ function addMarkers() {
     // Check if lines should be hidden
     const hideLinesCheckbox = document.getElementById('hide-lines-checkbox');
     const hideLines = hideLinesCheckbox && hideLinesCheckbox.checked;
-    
+
     qsos.forEach(qso => {
         // Adjust longitude of the marker to match the arc
         const adjustedLng = adjustLongitude(qso.longitude, centerLng);
-        
+
         const marker = L.circleMarker([qso.latitude, adjustedLng], {
             radius: 3,
             fillColor: document.getElementById('uniform-color-checkbox').checked ? getBandColor(qso.band) : '#FF0000',
@@ -258,7 +258,7 @@ function addMarkers() {
             opacity: 1,
             fillOpacity: 0.8
         });
-        
+
         marker.bindPopup(`
             <strong>${qso.call}</strong><br>
             Date: ${qso.date}<br>
@@ -268,7 +268,7 @@ function addMarkers() {
             Grid: ${qso.grid}<br>
             DXCC: ${qso.dxcc}
         `);
-        
+
         marker.addTo(map);
 
         // Draw arc only if lines are not hidden
@@ -333,7 +333,7 @@ document.getElementById('uniform-color-checkbox').addEventListener('change', fun
 function initializeModeFilter() {
     const modeFilter = document.getElementById('mode-checkboxes');
     const modes = [...new Set(qsos.map(qso => qso.mode))];
-    
+
     // Sort modes with custom order
     const modeOrder = {
         'CW': 1,
@@ -341,7 +341,7 @@ function initializeModeFilter() {
         'FT8': 3,
         'FT4': 4
     };
-    
+
     modes.sort((a, b) => {
         const orderA = modeOrder[a] || 999;
         const orderB = modeOrder[b] || 999;
@@ -405,7 +405,7 @@ applyModeColors();
     toggleButton.addEventListener('click', () => {
         const checkboxes = document.querySelectorAll('.mode-checkbox');
         allSelected = !allSelected;
-        
+
         checkboxes.forEach(cb => cb.checked = allSelected);
         toggleButton.textContent = allSelected ? 'Deselect All' : 'Select All';
         updateMarkers();
@@ -438,7 +438,7 @@ function updateMarkers() {
         if (selectedModes.includes(qso.mode) && selectedBands.includes(qso.band)) {
             // Adjust longitude of the marker to match the arc
             const adjustedLng = adjustLongitude(qso.longitude, centerLng);
-            
+
             // Add marker
             const marker = L.circleMarker([qso.latitude, adjustedLng], {
                 radius: 3,
@@ -448,7 +448,7 @@ function updateMarkers() {
                 opacity: 1,
                 fillOpacity: 0.8
             });
-            
+
             marker.bindPopup(`
                 <strong>${qso.call}</strong><br>
                 Date: ${qso.date}<br>
@@ -458,7 +458,7 @@ function updateMarkers() {
                 Grid: ${qso.grid}<br>
                 DXCC: ${qso.dxcc}
             `);
-            
+
             marker.addTo(map);
 
             // Draw arc only if lines are not hidden
@@ -500,10 +500,10 @@ document.getElementById('band-tab-btn').addEventListener('click', function() {
 function initializeBandFilter() {
     const bandFilter = document.getElementById('band-checkboxes');
     const bands = [...new Set(qsos.map(qso => qso.band))];
-    
+
     // Sort bands in order
     const bandOrder = ['160m', '80m', '40m', '30m', '20m', '17m', '15m', '12m', '10m', '6m', '4m', '2m', '70cm', '23cm', '13cm', '3cm', '1.25cm', '2.4ghz', '10ghz'];
-    
+
     bands.sort((a, b) => {
         const indexA = bandOrder.indexOf(a);
         const indexB = bandOrder.indexOf(b);
@@ -538,7 +538,7 @@ function initializeBandFilter() {
     toggleButton.addEventListener('click', () => {
         const checkboxes = document.querySelectorAll('.band-checkbox');
         allSelected = !allSelected;
-        
+
         checkboxes.forEach(cb => cb.checked = allSelected);
         toggleButton.textContent = allSelected ? 'Deselect All' : 'Select All';
         updateMarkers();

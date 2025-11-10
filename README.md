@@ -2,16 +2,10 @@
 
 HamLogMap is a web application for visualizing amateur radio QSO (contact) logs on an interactive map. It allows users to upload ADIF log files and view their radio contacts geographically.
 
-## Preview
+## Demo
 
-### Light Mode
-![HamLogMap Light Mode](readme_map_img_white.png)
-
-### Dark Mode
-![HamLogMap Dark Mode](readme_map_img_dark.png)
-
-### Statistics view
-![HamLogMap Dark Mode](readme_map_stats.png)
+<video src="hamlogmap.mp4" controls="controls" style="max-width: 800px;">
+</video>
 
 ## Features
 
