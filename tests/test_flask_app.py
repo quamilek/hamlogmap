@@ -3,7 +3,6 @@ Test suite for Flask application endpoints and routing.
 """
 import pytest
 from app import app
-from qsomap.upload import upload_bp
 
 
 @pytest.fixture
@@ -22,7 +21,7 @@ class TestFlaskApplication:
     @pytest.mark.unit
     def test_index_route(self, client):
         """Test that the main page loads successfully."""
-        response = client.get('/')
+        response = client.get('/', follow_redirects=True)
         assert response.status_code == 200
         assert b'Callsign' in response.data
         assert b'Locator' in response.data

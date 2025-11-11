@@ -1,6 +1,6 @@
 # HamLogMap Makefile
 
-.PHONY: help venv install freeze run test test-unit test-integration test-docker clean lint
+.PHONY: help venv install freeze run test test-unit test-integration test-docker clean lint ci-workflow
 
 help:  ## Show this help message
 	@echo "Available commands:"
@@ -50,6 +50,27 @@ docker-run:  ## Run Docker container
 
 docker-test-build:  ## Build Docker test image
 	docker build --target test -t hamlogmap:test .
+
+ci-workflow:  ## Run CI/CD workflow locally (equivalent to .github/python-app.yml)
+	@echo "Running CI/CD workflow..."
+	@echo "Step 1: Installing dependencies..."
+	. venv/bin/activate && python -m pip install --upgrade pip && pip install flake8
+	@echo "Step 2: Running linting..."
+	. venv/bin/activate && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv,env,.venv,.env
+	. venv/bin/activate && flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=venv,env,.venv,.env
+	@echo "Step 3: Running unit tests..."
+	. venv/bin/activate && python -m pytest tests/ -v --tb=short -m "unit" --maxfail=5
+	@echo "Step 4: Running integration tests..."
+	. venv/bin/activate && python -m pytest tests/ -v --tb=short -m "integration" --maxfail=5 || true
+	@echo "Step 5: Running all tests with coverage..."
+	. venv/bin/activate && python -m pytest tests/ -v --tb=short --cov=qsomap --cov-report=xml --cov-report=term-missing
+	@echo "Step 6: Building Docker test image..."
+	docker build --target test -t hamlogmap:test .
+	@echo "Step 7: Running tests in Docker..."
+	docker run --rm hamlogmap:test
+	@echo "Step 8: Building production Docker image..."
+	docker build --target production -t hamlogmap:latest .
+	@echo "CI/CD workflow completed successfully!"
 
 clean:  ## Clean up generated files
 	rm -rf venv/

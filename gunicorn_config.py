@@ -1,7 +1,6 @@
 # Gunicorn configuration for HamLogMap production
 
 import multiprocessing
-import os
 
 # Server socket
 bind = "0.0.0.0:8000"
@@ -36,4 +35,3 @@ certfile = None
 
 # Application
 raw_env = ["FLASK_ENV=production"]
-

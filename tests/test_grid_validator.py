@@ -46,13 +46,13 @@ class TestGridValidator:
             'JO6',       # Too short
             'JO60A',     # 5 characters (invalid length)
             'JO60AAA',   # 7 characters (invalid length)
-            'JO60AAAAA', # 9 characters (invalid length)
+            'JO60AAAAA',  # 9 characters (invalid length)
             'SO60AA',    # First letter out of range (S > R)
             'JZ60AA',    # Second letter out of range (Z > R)
             'JOAA60',    # Letters and numbers swapped
             'JO6AAA',    # Invalid digit position
             'JO60YY',    # Letters out of range (Y > X)
-            'JO60AA0A',  # Mixed digits and letters in wrong positions
+            'JO60AA0A',  # Mixed digits and letters
             None,        # None value
             123,         # Non-string type
         ]
@@ -94,7 +94,7 @@ class TestGridValidator:
             ('  JO60AA  ', True),
             (' JO60AA', True),
             ('JO60AA ', True),
-            ('\\tJO60AA\\n', True),
+            ('\tJO60AA\n', True),
         ]
 
         for grid, expected in test_cases:
@@ -114,7 +114,7 @@ class TestGridValidator:
             ('AA00AA00', True),   # Minimum valid values
             ('RR99XX99', True),   # Maximum valid values
             ('SA00AA00', False),  # Field letter too high (S > R)
-            ('AR00AA00', False),  # Field letter too high (second R+1)
+            ('AS00AA00', False),  # Field letter too high in second position (S > R)
             ('AA:0AA00', False),  # Square digit too high (: comes after 9)
             ('AAAA00AA', False),  # Square letter instead of digit
             ('AA00YA00', False),  # Subsquare letter too high (Y > X)

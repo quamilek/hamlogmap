@@ -2,6 +2,7 @@
 Standalone test for file validation without Flask dependencies.
 """
 
+
 def allowed_file(filename):
     """Check if the uploaded file has an allowed extension (ADIF or ADI)"""
     return '.' in filename and \

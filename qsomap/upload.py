@@ -1,15 +1,15 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
-from werkzeug.utils import secure_filename
-import os
-from qsomap.common.log_reader import read_log_file
+from flask import Blueprint, render_template, request, redirect, flash
 from pyhamtools.locator import locator_to_latlong
+from qsomap.common.log_reader import read_log_file
 
 upload_bp = Blueprint('upload', __name__)
+
 
 def allowed_file(filename):
     """Check if the uploaded file has an allowed extension (ADIF or ADI)"""
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in {'adif', 'adi'}
+
 
 @upload_bp.route('/upload', methods=['GET', 'POST'])
 def upload_file():

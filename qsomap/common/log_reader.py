@@ -6,6 +6,7 @@ from .grid_validator import validate_grid_square
 my_lookuplib = LookupLib(lookuptype="countryfile")
 cic = Callinfo(my_lookuplib)
 
+
 def get_band_color(band):
     band_colors = {
         '2200m': '#ff4500',  # Orange Red
@@ -27,12 +28,13 @@ def get_band_color(band):
         '23cm': '#5AB8C7',   # Turquoise
         '13cm': '#A52A2A',   # Brown
         '3cm': '#808080',    # Gray
-        '1.25cm': '#000000', # Black
-        '2.4ghz': '#FF7F50', # Coral
-        '10ghz': '#696969',  # Dim Gray
-        'invalid': '#808080' # Gray
+        '1.25cm': '#000000',  # Black
+        '2.4ghz': '#FF7F50',  # Coral
+        '10ghz': '#696969',   # Dim Gray
+        'invalid': '#808080'  # Gray
     }
-    return band_colors.get(band.lower(), '#808080')  # Default to gray if band not found
+    return band_colors.get(band.lower(), '#808080')
+
 
 def get_grid_from_call(call):
     # Get call sign information using pyhamtools library
@@ -45,6 +47,7 @@ def get_grid_from_call(call):
     except (KeyError, Exception):
         # For test callsigns or callsigns that can't be decoded, return default grid
         return "JO60AA"  # Default grid square for unknown callsigns
+
 
 def read_log_file(file_content):
     # Read amateur radio log file using adif_io library
@@ -63,10 +66,9 @@ def read_log_file(file_content):
         date = qso.get('QSO_DATE', '')
         time = qso.get('TIME_ON', '')
         mode = qso.get('MODE', '')
-        band = qso.get('BAND', '').lower()  # Convert band to lowercase
+        band = qso.get('BAND', '').lower()
         grid = qso.get('GRIDSQUARE', '')
         dxcc = info.get('country', 'Unknown')
-
 
         if not grid:
             # If grid square is not provided, estimate it from call sign
@@ -91,6 +93,4 @@ def read_log_file(file_content):
             'color': get_band_color(band)
         }
         enhanced_qsos.append(enhanced_qso)
-       # print(f"\ncall: {call}, date: {date}, time: {time}, mode: {mode}, band: {band}, grid: {grid}, dxcc: {dxcc}, latitude: {latitude}, longitude: {longitude}")
     return enhanced_qsos
-    # print(qso_list)
