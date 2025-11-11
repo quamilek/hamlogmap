@@ -25,24 +25,21 @@ services:
     
     # Command: run Gunicorn instead of Flask development server
     command: gunicorn --config gunicorn_config.py app:app
-    
+
     # Restart policy - automatically restart container if it exits
-    # restart_policy:
-    #   condition: unless-stopped    # Restart unless manually stopped
-    #   max_retries: 5               # Maximum 5 restart attempts
-    #   delay: 10s                   # Wait 10 seconds before restart
-    
+    restart: unless-stopped
+
     # Container health check
     # Docker automatically restarts container if health check fails
-    # healthcheck:
-    #   # Test: check if Gunicorn is responding on port 8000
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/", "||", "exit", "1"]
-    #   # Check every 30 seconds
-    #   interval: 30s
-    #   # Timeout for single check
-    #   timeout: 10s
-    #   # Number of failed attempts before container is considered unhealthy
-    #   retries: 3
-    #   # Wait 40s before starting checks (Gunicorn startup time)
-    #   start_period: 40s
+    healthcheck:
+      # Test: check if Gunicorn is responding on port 8000
+      test: ["CMD", "curl", "-f", "http://localhost:8000/", "||", "exit", "1"]
+      # Check every 30 seconds
+      interval: 30s
+      # Timeout for single check
+      timeout: 10s
+      # Number of failed attempts before container is considered unhealthy
+      retries: 3
+      # Wait 40s before starting checks (Gunicorn startup time)
+      start_period: 40s
 
