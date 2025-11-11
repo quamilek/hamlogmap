@@ -3,6 +3,7 @@ import logging
 from flask import Flask
 from qsomap.upload import upload_bp
 from qsomap.handlers import register_routes, register_error_handlers
+from qsomap.utils.version import get_version
 
 # Initialize Flask app
 app = Flask(__name__,
@@ -47,6 +48,14 @@ werkzeug_logger.setLevel(logging.WARNING)
 # Register routes and error handlers
 register_routes(app)
 register_error_handlers(app)
+
+
+# Context processor to inject version into templates
+@app.context_processor
+def inject_version():
+    """Inject application version into template context"""
+    return {'app_version': get_version()}
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=DEBUG, port=5050)

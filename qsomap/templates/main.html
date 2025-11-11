@@ -2,7 +2,56 @@
 
 {% block title %}Ham Log Map{% endblock %}
 
+{% block head %}
+    <style>
+        .github-ribbon {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 120px;
+            height: 120px;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .github-ribbon a {
+            position: absolute;
+            top: 25px;
+            right: -40px;
+            width: 160px;
+            background-color: #2d2d2d;
+            color: #e8e8e8;
+            text-align: center;
+            font-weight: bold;
+            padding: 7px 0;
+            text-decoration: none;
+            transform: rotate(45deg);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        .github-ribbon a:hover {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        /* Hide ribbon on small screens (mobile and tablet) */
+        @media (max-width: 991px) {
+            .github-ribbon {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
+    <div class="github-ribbon">
+        <a href="https://github.com/quamilek/hamlogmap" target="_blank" rel="noopener noreferrer">
+            source on GitHub
+        </a>
+    </div>
 
     <div class="row mt-4">
         <div class="col-12">
