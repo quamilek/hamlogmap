@@ -13,7 +13,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">Adif QSO Map</a>
+            <a class="navbar-brand" href="{{ url_for('index') }}">Ham Log Map</a>
         </div>
     </nav>
     <div class="container mt-4">
@@ -22,5 +22,11 @@
    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     {% block scripts %}{% endblock %}
+    
+    <footer class="bg-light mt-5 py-3 border-top">
+        <div class="container text-center">
+            <small class="text-muted">created by SP3WKW</small>
+        </div>
+    </footer>
 </body>
 </html> 
