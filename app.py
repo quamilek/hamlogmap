@@ -43,7 +43,8 @@ logger = logging.getLogger(__name__)
 
 # Configure Werkzeug logger to WARNING level to suppress 404 info logs in docker output
 werkzeug_logger = logging.getLogger('werkzeug')
-werkzeug_logger.setLevel(logging.WARNING)
+# Temporarily set to INFO to see debugger PIN
+werkzeug_logger.setLevel(logging.INFO if DEBUG else logging.WARNING)
 
 # Register routes and error handlers
 register_routes(app)
@@ -58,4 +59,8 @@ def inject_version():
 
 
 if __name__ == '__main__':
+    if DEBUG:
+        # Show debugger PIN when in debug mode
+        from werkzeug.debug import DebuggedApplication  # noqa: F401
+        logger.info("Debug mode is enabled")
     app.run(host='0.0.0.0', debug=DEBUG, port=5050)

@@ -37,4 +37,3 @@ def get_version():
 
     # Fallback version
     return 'dev'
-
