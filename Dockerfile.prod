@@ -1,20 +1,19 @@
-# Production Dockerfile with Gunicorn for HamLogMap
+# Production Dockerfile with Gunicorn for HamLogMap using uv
 FROM python:3.14-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies and uv
 RUN apt-get update && apt-get install -y \
     gcc \
     curl \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && mv /root/.local/bin/uv /usr/local/bin/uv \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install Gunicorn
-RUN pip install --no-cache-dir gunicorn==23.0.0
+# Copy project configuration first to leverage Docker cache
+COPY pyproject.toml ./
+RUN uv sync --no-dev --extra prod --no-install-project
 
 # Copy the rest of the application
 COPY . .
@@ -23,5 +22,5 @@ COPY . .
 EXPOSE 8000
 
 # Run Gunicorn with configuration
-CMD ["gunicorn", "--config", "gunicorn_config.py", "app:app"]
+CMD ["uv", "run", "--extra", "prod", "gunicorn", "--config", "gunicorn_config.py", "app:app"]
 

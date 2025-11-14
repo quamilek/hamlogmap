@@ -20,12 +20,14 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# uv
+.venv/
+
+# Virtual Environment (legacy)
 venv/
 env/
 ENV/
 .env
-.venv
 env.bak/
 venv.bak/
 
@@ -77,4 +79,4 @@ dmypy.json
 # Uploaded files
 uploads/
 *.adif
-*.adi 
+*.adi

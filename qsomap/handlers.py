@@ -3,7 +3,8 @@ Routes and error handlers for HamLogMap application
 """
 
 import logging
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, send_from_directory
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,12 @@ def register_routes(app):
     @app.route('/hamlogmap')
     def index():
         return render_template('main.html')
+
+    @app.route('/favicon.ico')
+    def favicon():
+        """Serve favicon.ico for browsers that request it from root"""
+        static_dir = os.path.join(app.root_path, 'qsomap', 'static')
+        return send_from_directory(static_dir, 'favicon.ico', mimetype='image/x-icon')
 
 
 def register_error_handlers(app):  # noqa: C901

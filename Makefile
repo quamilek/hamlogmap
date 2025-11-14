@@ -1,34 +1,34 @@
-# HamLogMap Makefile
+# HamLogMap Makefile with uv
 
-.PHONY: help venv install freeze run test test-unit test-integration test-docker clean lint ci-workflow
+.PHONY: help install sync lock run test test-unit test-integration test-docker clean lint ci-workflow
 
 help:  ## Show this help message
 	@echo "Available commands:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-venv:  ## Create virtual environment
-	python3 -m venv venv
+install:  ## Install uv if not already installed
+	@which uv > /dev/null || (echo "Installing uv..." && curl -LsSf https://astral.sh/uv/install.sh | sh)
 
-install: venv  ## Install dependencies
-	. venv/bin/activate && pip install --upgrade pip && pip install -r requirements.txt
+sync: install  ## Sync dependencies with uv
+	uv sync
 
-freeze:  ## Freeze current dependencies
-	. venv/bin/activate && pip freeze > requirements.txt
+lock: install  ## Update uv.lock file
+	uv lock
 
-run:  ## Run the application
-	. venv/bin/activate && python app.py
+run: sync  ## Run the application
+	uv run python app.py
 
-test:  ## Run all tests
-	. venv/bin/activate && python -m pytest tests/ -v --tb=short
+test: sync  ## Run all tests
+	uv run python -m pytest tests/ -v --tb=short
 
-test-unit:  ## Run only unit tests
-	. venv/bin/activate && python -m pytest tests/ -v -m "unit"
+test-unit: sync  ## Run only unit tests
+	uv run python -m pytest tests/ -v -m "unit"
 
-test-integration:  ## Run only integration tests
-	. venv/bin/activate && python -m pytest tests/ -v -m "integration"
+test-integration: sync  ## Run only integration tests
+	uv run python -m pytest tests/ -v -m "integration"
 
-test-coverage:  ## Run tests with coverage report
-	. venv/bin/activate && python -m pytest tests/ --cov=qsomap --cov-report=html --cov-report=term-missing
+test-coverage: sync  ## Run tests with coverage report
+	uv run python -m pytest tests/ --cov=qsomap --cov-report=html --cov-report=term-missing
 
 test-docker:  ## Run tests in Docker
 	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
@@ -36,11 +36,11 @@ test-docker:  ## Run tests in Docker
 test-standalone:  ## Run standalone test (no dependencies)
 	python3 tests/test_standalone.py
 
-lint:  ## Run linting with flake8
-	. venv/bin/activate && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv,env,.venv,.env
+lint: sync  ## Run linting with flake8
+	uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv
 
-lint-full:  ## Run full linting check
-	. venv/bin/activate && flake8 . --count --max-complexity=10 --max-line-length=127 --statistics --exclude=venv,env,.venv,.env
+lint-full: sync  ## Run full linting check
+	uv run flake8 . --count --max-complexity=10 --max-line-length=127 --statistics --exclude=.venv
 
 docker-build:  ## Build Docker image
 	docker build -t hamlogmap:latest .
@@ -51,19 +51,19 @@ docker-run:  ## Run Docker container
 docker-test-build:  ## Build Docker test image
 	docker build --target test -t hamlogmap:test .
 
-ci-workflow:  ## Run CI/CD workflow locally (equivalent to .github/python-app.yml)
+ci-workflow: sync  ## Run CI/CD workflow locally (equivalent to .github/python-app.yml)
 	@echo "Running CI/CD workflow..."
-	@echo "Step 1: Installing dependencies..."
-	. venv/bin/activate && python -m pip install --upgrade pip && pip install flake8
+	@echo "Step 1: Syncing dependencies..."
+	uv sync
 	@echo "Step 2: Running linting..."
-	. venv/bin/activate && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=venv,env,.venv,.env
-	. venv/bin/activate && flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=venv,env,.venv,.env
+	uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv
+	uv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.venv
 	@echo "Step 3: Running unit tests..."
-	. venv/bin/activate && python -m pytest tests/ -v --tb=short -m "unit" --maxfail=5
+	uv run python -m pytest tests/ -v --tb=short -m "unit" --maxfail=5
 	@echo "Step 4: Running integration tests..."
-	. venv/bin/activate && python -m pytest tests/ -v --tb=short -m "integration" --maxfail=5 || true
+	uv run python -m pytest tests/ -v --tb=short -m "integration" --maxfail=5 || true
 	@echo "Step 5: Running all tests with coverage..."
-	. venv/bin/activate && python -m pytest tests/ -v --tb=short --cov=qsomap --cov-report=xml --cov-report=term-missing
+	uv run python -m pytest tests/ -v --tb=short --cov=qsomap --cov-report=xml --cov-report=term-missing
 	@echo "Step 6: Building Docker test image..."
 	docker build --target test -t hamlogmap:test .
 	@echo "Step 7: Running tests in Docker..."
@@ -73,7 +73,7 @@ ci-workflow:  ## Run CI/CD workflow locally (equivalent to .github/python-app.ym
 	@echo "CI/CD workflow completed successfully!"
 
 clean:  ## Clean up generated files
-	rm -rf venv/
+	rm -rf .venv/
 	rm -rf __pycache__/
 	rm -rf .pytest_cache/
 	rm -rf htmlcov/

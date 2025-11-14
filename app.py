@@ -1,5 +1,6 @@
 import os
 import logging
+import sentry_sdk
 from flask import Flask
 from qsomap.upload import upload_bp
 from qsomap.handlers import register_routes, register_error_handlers
@@ -63,4 +64,17 @@ if __name__ == '__main__':
         # Show debugger PIN when in debug mode
         from werkzeug.debug import DebuggedApplication  # noqa: F401
         logger.info("Debug mode is enabled")
+
+    # Initialize Sentry if DSN is provided via environment variable
+    sentry_dsn = os.environ.get('SENTRY_DSN')
+    if sentry_dsn:
+        sentry_sdk.init(
+            dsn=sentry_dsn,
+            send_default_pii=True,
+            sample_rate=0.5,
+        )
+        logger.info("Sentry monitoring initialized")
+    else:
+        logger.info("Sentry DSN not configured, monitoring disabled")
+
     app.run(host='0.0.0.0', debug=DEBUG, port=5050)

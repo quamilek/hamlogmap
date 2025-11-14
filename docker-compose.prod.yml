@@ -7,20 +7,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
-    
+
     # Port mapping - Gunicorn listens on port 8000
     ports:
       - "80:8000"
-    
+
     # Volumes for log persistence
     volumes:
       - ./logs:/app/logs
-    
+
+    # Load environment variables from .env file
+    env_file:
+      - .env
+
     # Environment variables for production
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=False
-    
+
     # Command: run Gunicorn instead of Flask development server
     command: gunicorn --config gunicorn_config.py app:app
 
