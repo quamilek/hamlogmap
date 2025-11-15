@@ -1,14 +1,41 @@
 import adif_io
-from pyhamtools import LookupLib, Callinfo
 from pyhamtools.locator import latlong_to_locator, locator_to_latlong
 from .grid_validator import validate_grid_square
-
-my_lookuplib = LookupLib(lookuptype="countryfile")
-cic = Callinfo(my_lookuplib)
+from .callinfo_provider import CallInfoProvider
 
 
-def get_band_color(band):
-    band_colors = {
+class CallsignGridResolver:
+    """Resolver for obtaining grid squares from callsigns."""
+    
+    def __init__(self):
+        """Initialize with Callinfo provider."""
+        self.cic = CallInfoProvider.get()
+    
+    def get_grid_from_call(self, call):
+        """
+        Get grid square from callsign using callinfo lookup.
+        
+        Args:
+            call: Callsign to lookup
+            
+        Returns:
+            Grid square string or default grid if lookup fails
+        """
+        try:
+            info = self.cic.get_all(call)
+            latitude = info.get('latitude', 0)
+            longitude = info.get('longitude', 0)
+            grid = latlong_to_locator(latitude, longitude)
+            return grid
+        except (KeyError, Exception):
+            # For test callsigns or callsigns that can't be decoded, return default grid
+            return "JO60AA"  # Default grid square for unknown callsigns
+
+
+class BandColorMapper:
+    """Maps amateur radio bands to display colors."""
+    
+    BAND_COLORS = {
         '2200m': '#ff4500',  # Orange Red
         '600m': '#1e90ff',   # Dodger Blue
         '160m': '#7cfc00',   # Lawn Green
@@ -33,54 +60,70 @@ def get_band_color(band):
         '10ghz': '#696969',   # Dim Gray
         'invalid': '#808080'  # Gray
     }
-    return band_colors.get(band.lower(), '#808080')
+    
+    @staticmethod
+    def get_color(band):
+        """Get color for band."""
+        return BandColorMapper.BAND_COLORS.get(band.lower(), '#808080')
 
 
-def get_grid_from_call(call):
-    # Get call sign information using pyhamtools library
-    try:
-        info = cic.get_all(call)
-        latitude = info.get('latitude', 0)
-        longitude = info.get('longitude', 0)
-        grid = latlong_to_locator(latitude, longitude)
-        return grid
-    except (KeyError, Exception):
-        # For test callsigns or callsigns that can't be decoded, return default grid
-        return "JO60AA"  # Default grid square for unknown callsigns
-
-
-def read_log_file(file_content):
-    # Read amateur radio log file using adif_io library
-    qsos, header = adif_io.read_from_string(file_content)
-    enhanced_qsos = []
-    for qso in qsos:
+class LogFileProcessor:
+    """Processor for reading and enhancing amateur radio log files."""
+    
+    def __init__(self):
+        """Initialize with required dependencies."""
+        self.grid_resolver = CallsignGridResolver()
+        self.color_mapper = BandColorMapper()
+    
+    def process(self, file_content):
+        """
+        Read and enhance amateur radio log file.
+        
+        Args:
+            file_content: ADIF file content as string
+            
+        Returns:
+            List of enhanced QSO dictionaries with grid, DXCC, and coordinate info
+        """
+        qsos, header = adif_io.read_from_string(file_content)
+        enhanced_qsos = []
+        
+        for qso in qsos:
+            enhanced_qso = self._enhance_qso(qso)
+            enhanced_qsos.append(enhanced_qso)
+        
+        return enhanced_qsos
+    
+    def _enhance_qso(self, qso):
+        """
+        Enhance single QSO record with additional data.
+        
+        Args:
+            qso: QSO record from ADIF file
+            
+        Returns:
+            Enhanced QSO dictionary
+        """
         call = qso.get('CALL', '')
-
-        # Safely get callsign info, handle test callsigns
-        try:
-            info = cic.get_all(call)
-        except (KeyError, Exception):
-            # For test callsigns or callsigns that can't be decoded
-            info = {'country': 'Unknown', 'latitude': 0, 'longitude': 0}
-
+        
+        # Get callsign info
+        info = self._get_callsign_info(call)
+        
+        # Extract basic QSO data
         date = qso.get('QSO_DATE', '')
         time = qso.get('TIME_ON', '')
         mode = qso.get('MODE', '')
         band = qso.get('BAND', '').lower()
         grid = qso.get('GRIDSQUARE', '')
         dxcc = info.get('country', 'Unknown')
-
-        if not grid:
-            # If grid square is not provided, estimate it from call sign
-            grid = get_grid_from_call(call)
-
-        # Validate grid square format
-        if not validate_grid_square(grid):
-            # If grid is invalid, try to get it from call sign
-            grid = get_grid_from_call(call)
-
+        
+        # Resolve grid square
+        grid = self._resolve_grid(call, grid)
+        
+        # Convert grid to coordinates
         latitude, longitude = locator_to_latlong(grid)
-        enhanced_qso = {
+        
+        return {
             'call': call,
             'date': date,
             'time': time,
@@ -90,7 +133,71 @@ def read_log_file(file_content):
             'dxcc': dxcc,
             'latitude': latitude,
             'longitude': longitude,
-            'color': get_band_color(band)
+            'color': self.color_mapper.get_color(band)
         }
-        enhanced_qsos.append(enhanced_qso)
-    return enhanced_qsos
+    
+    def _get_callsign_info(self, call):
+        """
+        Get callsign information with error handling.
+        
+        Args:
+            call: Callsign to lookup
+            
+        Returns:
+            Dictionary with callsign info or defaults
+        """
+        try:
+            return self.grid_resolver.cic.get_all(call)
+        except (KeyError, Exception):
+            return {'country': 'Unknown', 'latitude': 0, 'longitude': 0}
+    
+    def _resolve_grid(self, call, grid):
+        """
+        Resolve grid square from QSO or callsign.
+        
+        Args:
+            call: Callsign
+            grid: Grid square from QSO
+            
+        Returns:
+            Valid grid square
+        """
+        if not grid:
+            grid = self.grid_resolver.get_grid_from_call(call)
+        
+        if not validate_grid_square(grid):
+            grid = self.grid_resolver.get_grid_from_call(call)
+        
+        return grid
+
+
+# Public API functions for backwards compatibility
+def read_log_file(file_content):
+    """
+    Read and enhance amateur radio log file.
+    
+    This is a convenience function that uses LogFileProcessor internally.
+    
+    Args:
+        file_content: ADIF file content as string
+        
+    Returns:
+        List of enhanced QSO dictionaries with grid, DXCC, and coordinate info
+    """
+    processor = LogFileProcessor()
+    return processor.process(file_content)
+
+
+def get_band_color(band):
+    """
+    Get color for band.
+    
+    This is a convenience function for backwards compatibility.
+    
+    Args:
+        band: Band designation
+        
+    Returns:
+        Color hex code
+    """
+    return BandColorMapper.get_color(band)

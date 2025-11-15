@@ -77,4 +77,7 @@ dmypy.json
 # Uploaded files
 uploads/
 *.adif
-*.adi 
+*.adi
+
+# CTY data file (downloaded during build)
+qsomap/common/cty.plist
