@@ -1,5 +1,5 @@
 var map = L.map('map', {
-    minZoom: 2,
+    minZoom: 1,
     maxZoom: 18,
     worldCopyJump: true,
     maxBounds: [
@@ -7,7 +7,9 @@ var map = L.map('map', {
         [90, 180]
     ],
     maxBoundsViscosity: 1.0,
-    crs: L.CRS.EPSG3857
+    crs: L.CRS.EPSG3857,
+    touchZoom: true,
+    bounceAtZoomLimits: false
 }).setView([window.mapData.my_latitude, window.mapData.my_longitude], 2);
 
 var dayLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -553,3 +555,15 @@ document.getElementById('uniform-color-checkbox').addEventListener('change', upd
 
 // Add event listener for hide lines checkbox
 document.getElementById('hide-lines-checkbox').addEventListener('change', updateMarkers);
+
+// Handle window resize to adjust map for mobile devices
+window.addEventListener('resize', function() {
+    map.invalidateSize();
+});
+
+// Adjust map size on load to ensure it fits properly on mobile
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        map.invalidateSize();
+    }, 100);
+});

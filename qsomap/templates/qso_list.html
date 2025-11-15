@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div id="map"></div>
     <div class="top-bar">
         <div class="top-bar-content">
             <h2 class="top-bar-title">QSO map - {{ callsign }} - {{ filename }}</h2>
@@ -31,6 +30,8 @@
             </div>
         </div>
     </div>
+
+    <div id="map"></div>
 
     <!-- Combined Filter Panel -->
     <div class="combined-filter-panel">
