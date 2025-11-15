@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, flash
+from flask import Blueprint, render_template, request, redirect, flash, url_for
 from pyhamtools.locator import locator_to_latlong
 from qsomap.common.log_reader import read_log_file
+from qsomap.common.grid_validator import validate_grid_square
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -11,33 +12,94 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in {'adif', 'adi'}
 
 
+def validate_file(file):
+    """Validate uploaded file and flash error message if invalid"""
+    if 'file' not in request.files:
+        flash('No file selected', 'error')
+        return False
+
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return False
+
+    if not allowed_file(file.filename):
+        flash('Invalid file type. Please upload only ADIF (.adif) or ADI (.adi) files.', 'error')
+        return False
+
+    return True
+
+
+def validate_locator(my_locator):
+    """Validate locator format and flash error message if invalid, return normalized locator or None"""
+    if not my_locator or not my_locator.strip():
+        flash('Locator field is required.', 'error')
+        return None
+
+    normalized_locator = my_locator.strip().upper()
+
+    if not validate_grid_square(normalized_locator):
+        flash('Invalid locator format. Please enter a valid Maidenhead locator (e.g., JO70, JO70fp, JO70fp12).', 'error')
+        return None
+
+    return normalized_locator
+
+
+def convert_locator_to_coordinates(locator):
+    """Convert locator to coordinates and flash error message if invalid, return tuple (lat, lng) or (None, None)"""
+    try:
+        latitude, longitude = locator_to_latlong(locator)
+        return latitude, longitude
+    except ValueError as e:
+        flash(f'Error converting locator to coordinates: {str(e)}', 'error')
+        return None, None
+
+
+def read_file_content(file):
+    """Read file content with proper encoding handling and flash error message if failed, return content or None"""
+    try:
+        return file.read().decode('utf-8')
+    except UnicodeDecodeError:
+        try:
+            # Reset file pointer and try latin-1 encoding
+            file.seek(0)
+            return file.read().decode('latin-1')
+        except UnicodeDecodeError:
+            flash('Cannot read file. Please ensure the file is in text format.', 'error')
+            return None
+
+
 @upload_bp.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file selected')
-            return redirect(request.url)
-        file = request.files['file']
-        if file.filename == '':
-            flash('No file selected')
-            return redirect(request.url)
-        if not allowed_file(file.filename):
-            flash('Invalid file type. Please upload only ADIF (.adif) or ADI (.adi) files.')
-            return redirect(request.url)
+        file = request.files.get('file')
+
+        # Validate file
+        if not validate_file(file):
+            return redirect(url_for('upload.upload_file'))
+
+        # Get form data
         callsign = request.form.get('callsign')
         my_locator = request.form.get('my_locator')
-        my_latitude, my_longitude = locator_to_latlong(my_locator)
 
-        try:
-            file_content = file.read().decode('utf-8')
-        except UnicodeDecodeError:
-            try:
-                file_content = file.read().decode('latin-1')
-            except UnicodeDecodeError:
-                flash('Cannot read file. Please ensure the file is in text format.')
-                return redirect(request.url)
+        # Validate locator
+        normalized_locator = validate_locator(my_locator)
+        if not normalized_locator:
+            return redirect(url_for('upload.upload_file'))
+
+        # Convert locator to coordinates
+        my_latitude, my_longitude = convert_locator_to_coordinates(normalized_locator)
+        if my_latitude is None or my_longitude is None:
+            return redirect(url_for('upload.upload_file'))
+
+        # Read file content
+        file_content = read_file_content(file)
+        if not file_content:
+            return redirect(url_for('upload.upload_file'))
+
+        # Process QSO data
         qsos = read_log_file(file_content)
         flash('File uploaded successfully!')
+
         return render_template(
             'qso_list.html',
             qsos=qsos,
@@ -46,4 +108,5 @@ def upload_file():
             callsign=callsign,
             filename=file.filename
         )
+
     return render_template('main.html')
