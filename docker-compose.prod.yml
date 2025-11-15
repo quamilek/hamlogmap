@@ -10,7 +10,7 @@ services:
     
     # Port mapping - Gunicorn listens on port 8000
     ports:
-      - "80:8000"
+      - "8088:8000"
     
     # Volumes for log persistence
     volumes:

@@ -6,7 +6,6 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
-    wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
@@ -16,9 +15,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application
 COPY . .
 
-# Download CTY data file for country lookup
-RUN wget -O qsomap/common/cty.plist http://www.country-files.com/cty/cty.plist || \
-    (echo "Failed to download cty.plist, but continuing..." && exit 0)
 
 # Test stage
 FROM base as test
