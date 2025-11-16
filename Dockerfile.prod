@@ -22,6 +22,9 @@ COPY . .
 # Expose port for Gunicorn
 EXPOSE 8000
 
+# Set unbuffered Python output to see logs in Docker console
+ENV PYTHONUNBUFFERED=1
+
 # Run Gunicorn with configuration
 CMD ["gunicorn", "--config", "gunicorn_config.py", "app:app"]
 
