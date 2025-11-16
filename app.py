@@ -1,9 +1,10 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, current_app
 from qsomap.upload import upload_bp
 from qsomap.handlers import register_routes, register_error_handlers
 from qsomap.utils.version import get_version
+from qsomap.common.callinfo_provider import CallInfoProvider
 
 # Initialize Flask app
 app = Flask(__name__,
@@ -20,6 +21,10 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = False
 # Set debug mode from environment variable (default: False for production)
 DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1', 'yes')
 app.debug = DEBUG
+
+# Initialize CallInfoProvider singleton once at app startup
+# This will be stored for the entire lifetime of the application
+app.callinfo = CallInfoProvider.get()
 
 # Register blueprints
 app.register_blueprint(upload_bp)

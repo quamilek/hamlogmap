@@ -1,15 +1,20 @@
 import adif_io
+from flask import current_app
 from pyhamtools.locator import latlong_to_locator, locator_to_latlong
 from .grid_validator import validate_grid_square
-from .callinfo_provider import CallInfoProvider
 
 
 class CallsignGridResolver:
     """Resolver for obtaining grid squares from callsigns."""
     
-    def __init__(self):
-        """Initialize with Callinfo provider."""
-        self.cic = CallInfoProvider.get()
+    def __init__(self, callinfo=None):
+        """
+        Initialize with Callinfo provider.
+        
+        Args:
+            callinfo: Optional Callinfo instance (uses current_app.callinfo if not provided)
+        """
+        self.cic = callinfo or current_app.callinfo
     
     def get_grid_from_call(self, call):
         """
