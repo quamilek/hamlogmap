@@ -32,7 +32,8 @@ class CallInfoProvider:
         """Get or create Redis client."""
         try:
             redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-            client = redis.from_url(redis_url, decode_responses=True)
+            # decode_responses=False is required for pyhamtools to properly deserialize data
+            client = redis.from_url(redis_url, decode_responses=False)
             client.ping()
             logger.info("✓ Redis connection successful")
             return client

@@ -59,7 +59,7 @@ def populate_redis_from_countryfile():
             logger.info(f"✓ Successfully copied lookup data to Redis")
             
             # Verify by counting keys
-            key_pattern = f"{REDIS_PREFIX}:*".encode()
+            key_pattern = f"{REDIS_PREFIX}*".encode()
             count = r.keys(key_pattern)
             logger.info(f"✓ Redis now contains {len(count)} keys with prefix '{REDIS_PREFIX}'")
             
