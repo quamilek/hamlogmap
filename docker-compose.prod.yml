@@ -1,7 +1,22 @@
-# Production configuration - with Gunicorn and automatic restart
+# Production configuration - with Gunicorn, Redis and automatic restart
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: hamlogmap-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   web:
     # Build image from Dockerfile.prod (special for production with Gunicorn)
     build:
@@ -20,6 +35,14 @@ services:
     environment:
       - FLASK_ENV=production
       - FLASK_DEBUG=False
+      - REDIS_URL=redis://redis:6379/0
+      - USE_COUNTRYFILE_FROM_REDIS=true
+      - PYTHONUNBUFFERED=1
+    
+    # Depends on Redis
+    depends_on:
+      redis:
+        condition: service_healthy
     
     # Command: run Gunicorn instead of Flask development server
     command: gunicorn --config gunicorn_config.py app:app
@@ -41,3 +64,5 @@ services:
       # Wait 40s before starting checks (Gunicorn startup time)
       start_period: 40s
 
+volumes:
+  redis_data:

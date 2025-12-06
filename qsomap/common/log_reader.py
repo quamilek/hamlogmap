@@ -1,15 +1,23 @@
+import logging
 import adif_io
+from flask import current_app
 from pyhamtools.locator import latlong_to_locator, locator_to_latlong
 from .grid_validator import validate_grid_square
-from .callinfo_provider import CallInfoProvider
+
+logger = logging.getLogger(__name__)
 
 
 class CallsignGridResolver:
     """Resolver for obtaining grid squares from callsigns."""
     
-    def __init__(self):
-        """Initialize with Callinfo provider."""
-        self.cic = CallInfoProvider.get()
+    def __init__(self, callinfo=None):
+        """
+        Initialize with Callinfo provider.
+        
+        Args:
+            callinfo: Optional Callinfo instance (uses current_app.callinfo if not provided)
+        """
+        self.cic = callinfo or current_app.callinfo
     
     def get_grid_from_call(self, call):
         """
@@ -147,8 +155,10 @@ class LogFileProcessor:
             Dictionary with callsign info or defaults
         """
         try:
+            
             return self.grid_resolver.cic.get_all(call)
-        except (KeyError, Exception):
+        except (KeyError, Exception) as e:
+            logger.exception(f"Error getting callsign info for {call}: {e}")
             return {'country': 'Unknown', 'latitude': 0, 'longitude': 0}
     
     def _resolve_grid(self, call, grid):

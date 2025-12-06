@@ -1,4 +1,0 @@
-"""
-HamLogMap - QSO mapping application
-"""
-

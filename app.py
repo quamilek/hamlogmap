@@ -1,9 +1,10 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, current_app
 from qsomap.upload import upload_bp
 from qsomap.handlers import register_routes, register_error_handlers
 from qsomap.utils.version import get_version
+from qsomap.common.callinfo_provider import CallInfoProvider
 
 # Initialize Flask app
 app = Flask(__name__,
@@ -21,10 +22,7 @@ app.config['TRAP_BAD_REQUEST_ERRORS'] = False
 DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1', 'yes')
 app.debug = DEBUG
 
-# Register blueprints
-app.register_blueprint(upload_bp)
-
-# Configure logging
+# Configure logging EARLY (before other initializations)
 # Create logs directory if it doesn't exist
 logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
 os.makedirs(logs_dir, exist_ok=True)
@@ -40,6 +38,33 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Initialize CallInfoProvider singleton once at app startup
+# This will be stored for the entire lifetime of the application
+app.callinfo = CallInfoProvider.get()
+
+# Populate Redis cache at app startup (only once)
+def _populate_redis_at_startup():
+    """Populate Redis with country data at app startup."""
+    use_redis = os.environ.get('USE_COUNTRYFILE_FROM_REDIS', 'false').lower() in ('true', '1', 'yes')
+    
+    if not use_redis:
+        logger.info("Redis country file caching is disabled (USE_COUNTRYFILE_FROM_REDIS=false)")
+        return
+    
+    try:
+        from populate_redis import populate_redis_from_countryfile
+        logger.info("Populating Redis cache at startup...")
+        populate_redis_from_countryfile()
+    except Exception as e:
+        logger.warning(f"Failed to populate Redis at startup: {e}")
+
+
+# Populate Redis before registering blueprints
+_populate_redis_at_startup()
+
+# Register blueprints
+app.register_blueprint(upload_bp)
 
 # Configure Werkzeug logger to WARNING level to suppress 404 info logs in docker output
 werkzeug_logger = logging.getLogger('werkzeug')
