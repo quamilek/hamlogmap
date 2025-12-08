@@ -26,6 +26,7 @@
                     <label class="form-check-label" for="hide-lines-checkbox">Hide Lines</label>
                 </div>
                 <button id="show-stats-button" class="btn btn-primary">Show Statistics</button>
+                <button id="timeline-button" class="btn btn-info">Run Timeline</button>
                 <button id="night-mode-button" class="btn btn-dark">Toggle Night Mode</button>
             </div>
         </div>
@@ -35,28 +36,34 @@
 
     <!-- Combined Filter Panel -->
     <div class="combined-filter-panel">
-        <div class="filter-tabs">
-            <button class="filter-tab-btn active" id="mode-tab-btn">Mode Filter</button>
-            <button class="filter-tab-btn" id="band-tab-btn">Band Filter</button>
+        <div class="filter-panel-header">
+            <span class="filter-panel-title">Filters</span>
+            <button class="filter-minimize-btn" id="filter-minimize-btn" title="Minimize">−</button>
         </div>
+        <div class="filter-panel-body">
+            <div class="filter-tabs">
+                <button class="filter-tab-btn active" id="mode-tab-btn">Mode</button>
+                <button class="filter-tab-btn" id="band-tab-btn">Band</button>
+            </div>
 
-        <!-- Mode Filter Content -->
-        <div id="mode-filter-tab" class="filter-tab-content active">
-            <div class="filter-header">
-                <button class="btn btn-sm btn-outline-secondary" id="toggle-all-modes">Select All</button>
+            <!-- Mode Filter Content -->
+            <div id="mode-filter-tab" class="filter-tab-content active">
+                <div class="filter-header">
+                    <button class="btn btn-sm btn-outline-secondary" id="toggle-all-modes">All</button>
+                </div>
+                <div class="filter-content" id="mode-checkboxes">
+                    <!-- Checkboxes will be added here dynamically -->
+                </div>
             </div>
-            <div class="filter-content" id="mode-checkboxes">
-                <!-- Checkboxes will be added here dynamically -->
-            </div>
-        </div>
 
-        <!-- Band Filter Content -->
-        <div id="band-filter-tab" class="filter-tab-content">
-            <div class="filter-header">
-                <button class="btn btn-sm btn-outline-secondary" id="toggle-all-bands">Select All</button>
-            </div>
-            <div class="filter-content" id="band-checkboxes">
-                <!-- Checkboxes will be added here dynamically -->
+            <!-- Band Filter Content -->
+            <div id="band-filter-tab" class="filter-tab-content">
+                <div class="filter-header">
+                    <button class="btn btn-sm btn-outline-secondary" id="toggle-all-bands">All</button>
+                </div>
+                <div class="filter-content" id="band-checkboxes">
+                    <!-- Checkboxes will be added here dynamically -->
+                </div>
             </div>
         </div>
     </div>
@@ -153,6 +160,39 @@
             my_longitude: {{ my_longitude }}
         };
     </script>
+    <!-- Timeline Panel -->
+    <div id="timeline-container" class="timeline-panel">
+        <div class="timeline-header">
+            <div class="timeline-info">
+                <span id="timeline-current-date" class="timeline-date">--</span>
+                <span id="timeline-qso-count" class="timeline-count">0 / 0 QSOs</span>
+            </div>
+            <div class="timeline-controls">
+                <button id="timeline-play-btn" class="btn btn-sm btn-success">▶ Play</button>
+                <button id="timeline-reset-btn" class="btn btn-sm btn-secondary">⟲ Reset</button>
+                <select id="timeline-speed" class="form-select form-select-sm timeline-speed-select">
+                    <option value="50">Very Fast</option>
+                    <option value="150">Fast</option>
+                    <option value="300" selected>Normal</option>
+                    <option value="500">Slow</option>
+                </select>
+                <button id="timeline-close-btn" class="btn btn-sm btn-outline-danger">✕ Close</button>
+            </div>
+        </div>
+        <div class="timeline-slider-container">
+            <span id="timeline-start-label" class="timeline-label">--</span>
+            <div class="timeline-slider-wrapper">
+                <div id="timeline-activity-bar" class="timeline-activity-bar"></div>
+                <input type="range" id="timeline-slider" min="0" max="1000" value="0" class="timeline-slider">
+            </div>
+            <span id="timeline-end-label" class="timeline-label">--</span>
+        </div>
+        <div class="timeline-legend">
+            <span class="legend-item"><span class="legend-dot on-air"></span> On Air</span>
+            <span class="legend-item"><span class="legend-dot off-air"></span> Off Air</span>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

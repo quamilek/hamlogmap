@@ -38,6 +38,383 @@ var nightLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}
 
 var qsos = window.mapData.qsos;
 
+// ==================== TIMELINE FUNCTIONALITY ====================
+
+// Timeline state variables
+let timelineSortedQsos = [];
+let timelineLayer = L.layerGroup();
+let isTimelineActive = false;
+let animationInterval = null;
+let timelineMinDate = null;
+let timelineMaxDate = null;
+
+// Parse ADIF date and time to JavaScript Date object
+function parseQsoDateTime(dateStr, timeStr) {
+    if (!dateStr) return null;
+    
+    const year = parseInt(dateStr.slice(0, 4));
+    const month = parseInt(dateStr.slice(4, 6)) - 1; // JS months are 0-indexed
+    const day = parseInt(dateStr.slice(6, 8));
+    
+    let hour = 0, min = 0, sec = 0;
+    if (timeStr) {
+        hour = parseInt(timeStr.slice(0, 2)) || 0;
+        min = parseInt(timeStr.slice(2, 4)) || 0;
+        sec = parseInt(timeStr.slice(4, 6)) || 0;
+    }
+    
+    return new Date(year, month, day, hour, min, sec);
+}
+
+// Format date for display
+function formatDateTime(date) {
+    if (!date) return '--';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hour}:${min}`;
+}
+
+// Format date for label (short version)
+function formatDateShort(date) {
+    if (!date) return '--';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Initialize timeline data
+function initTimelineData() {
+    // Create sorted copy of QSOs with parsed dates
+    timelineSortedQsos = qsos
+        .map(qso => ({
+            ...qso,
+            dateTime: parseQsoDateTime(qso.date, qso.time)
+        }))
+        .filter(qso => qso.dateTime !== null) // Filter out QSOs without valid dates
+        .sort((a, b) => a.dateTime - b.dateTime);
+    
+    if (timelineSortedQsos.length === 0) {
+        alert('No QSOs with valid dates found!');
+        return false;
+    }
+    
+    timelineMinDate = timelineSortedQsos[0].dateTime;
+    timelineMaxDate = timelineSortedQsos[timelineSortedQsos.length - 1].dateTime;
+    
+    // Update labels
+    document.getElementById('timeline-start-label').textContent = formatDateShort(timelineMinDate);
+    document.getElementById('timeline-end-label').textContent = formatDateShort(timelineMaxDate);
+    
+    // Generate activity bar visualization
+    generateActivityBar();
+    
+    return true;
+}
+
+// Generate activity bar showing on-air/off-air periods
+function generateActivityBar() {
+    const activityBar = document.getElementById('timeline-activity-bar');
+    activityBar.innerHTML = ''; // Clear existing segments
+    
+    if (timelineSortedQsos.length === 0) return;
+    
+    const totalRange = timelineMaxDate.getTime() - timelineMinDate.getTime();
+    if (totalRange === 0) {
+        // If all QSOs at same time, show full bar as on-air
+        const segmentEl = document.createElement('div');
+        segmentEl.className = 'activity-segment on-air';
+        segmentEl.style.left = '0%';
+        segmentEl.style.width = '100%';
+        activityBar.appendChild(segmentEl);
+        return;
+    }
+    
+    // Threshold for considering "off-air" - 10 minutes without QSO
+    const offAirThreshold = 10 * 60 * 1000; // 10 minutes in milliseconds
+    
+    // Build activity segments - only track on-air periods
+    const segments = [];
+    let currentSegmentStart = timelineSortedQsos[0].dateTime.getTime();
+    let lastQsoTime = currentSegmentStart;
+    
+    for (let i = 1; i < timelineSortedQsos.length; i++) {
+        const qsoTime = timelineSortedQsos[i].dateTime.getTime();
+        const gap = qsoTime - lastQsoTime;
+        
+        if (gap > offAirThreshold) {
+            // End current on-air segment (extend it slightly past last QSO)
+            segments.push({
+                start: currentSegmentStart,
+                end: lastQsoTime + (offAirThreshold / 2), // Extend segment slightly
+                type: 'on-air'
+            });
+            
+            // Start new on-air segment (start slightly before this QSO)
+            currentSegmentStart = qsoTime - (offAirThreshold / 2);
+        }
+        
+        lastQsoTime = qsoTime;
+    }
+    
+    // Add final on-air segment
+    segments.push({
+        start: currentSegmentStart,
+        end: lastQsoTime,
+        type: 'on-air'
+    });
+    
+    // Create DOM elements for on-air segments only
+    segments.forEach(segment => {
+        let startPercent = ((segment.start - timelineMinDate.getTime()) / totalRange) * 100;
+        let endPercent = ((segment.end - timelineMinDate.getTime()) / totalRange) * 100;
+        
+        // Clamp to valid range
+        startPercent = Math.max(0, startPercent);
+        endPercent = Math.min(100, endPercent);
+        
+        const width = endPercent - startPercent;
+        
+        // Render segment with minimum width of 0.3%
+        if (width >= 0.1) {
+            const segmentEl = document.createElement('div');
+            segmentEl.className = 'activity-segment on-air';
+            segmentEl.style.left = `${startPercent}%`;
+            segmentEl.style.width = `${Math.max(width, 0.3)}%`;
+            activityBar.appendChild(segmentEl);
+        }
+    });
+    
+    console.log('Activity segments generated:', segments.length);
+}
+
+// Get date from slider value (0-1000)
+function getDateFromSliderValue(value) {
+    const range = timelineMaxDate.getTime() - timelineMinDate.getTime();
+    const timestamp = timelineMinDate.getTime() + (range * value / 1000);
+    return new Date(timestamp);
+}
+
+// Get slider value from date
+function getSliderValueFromDate(date) {
+    const range = timelineMaxDate.getTime() - timelineMinDate.getTime();
+    if (range === 0) return 1000;
+    return Math.round(((date.getTime() - timelineMinDate.getTime()) / range) * 1000);
+}
+
+// Add single QSO to timeline layer
+function addQsoToTimelineLayer(qso) {
+    const centerLng = window.mapData.my_longitude;
+    const adjustedLng = adjustLongitude(qso.longitude, centerLng);
+    const hideLines = document.getElementById('hide-lines-checkbox')?.checked || false;
+    const useColorByBand = document.getElementById('uniform-color-checkbox')?.checked || true;
+    
+    // Create marker
+    const marker = L.circleMarker([qso.latitude, adjustedLng], {
+        radius: 4,
+        fillColor: useColorByBand ? getBandColor(qso.band) : '#FF0000',
+        color: '#000',
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.9
+    });
+    
+    marker.bindPopup(`
+        <strong>${qso.call}</strong><br>
+        Date: ${qso.date}<br>
+        Time: ${qso.time}<br>
+        Mode: ${qso.mode}<br>
+        Band: ${qso.band}<br>
+        Grid: ${qso.grid}<br>
+        DXCC: ${qso.dxcc}
+    `);
+    
+    timelineLayer.addLayer(marker);
+    
+    // Draw arc if lines are not hidden
+    if (!hideLines) {
+        try {
+            const arc = drawArc(
+                [window.mapData.my_latitude, window.mapData.my_longitude],
+                [qso.latitude, adjustedLng]
+            );
+            timelineLayer.addLayer(arc);
+        } catch (e) {
+            console.log('Arc error:', e);
+        }
+    }
+}
+
+// Update timeline display based on slider position
+function updateTimelineDisplay(sliderValue) {
+    const currentDate = getDateFromSliderValue(sliderValue);
+    
+    // Get selected filters
+    const selectedModes = Array.from(document.querySelectorAll('.mode-checkbox:checked')).map(cb => cb.value);
+    const selectedBands = Array.from(document.querySelectorAll('.band-checkbox:checked')).map(cb => cb.value);
+    
+    // Clear current timeline layer
+    timelineLayer.clearLayers();
+    
+    // Filter and add QSOs up to current date
+    const visibleQsos = timelineSortedQsos.filter(qso => {
+        if (qso.dateTime > currentDate) return false;
+        if (selectedModes.length > 0 && !selectedModes.includes(qso.mode)) return false;
+        if (selectedBands.length > 0 && !selectedBands.includes(qso.band)) return false;
+        return true;
+    });
+    
+    visibleQsos.forEach(qso => addQsoToTimelineLayer(qso));
+    
+    // Update UI
+    document.getElementById('timeline-current-date').textContent = formatDateTime(currentDate);
+    document.getElementById('timeline-qso-count').textContent = `${visibleQsos.length} / ${timelineSortedQsos.length} QSOs`;
+}
+
+// Start timeline mode
+function startTimeline() {
+    if (!initTimelineData()) return;
+    
+    isTimelineActive = true;
+    document.body.classList.add('timeline-active');
+    document.getElementById('timeline-container').classList.add('active');
+    document.getElementById('timeline-button').classList.add('active');
+    
+    // Hide all regular markers
+    map.eachLayer((layer) => {
+        if (layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Add timeline layer to map
+    timelineLayer.addTo(map);
+    
+    // Reset slider
+    document.getElementById('timeline-slider').value = 0;
+    updateTimelineDisplay(0);
+    
+    // Invalidate map size for proper display
+    setTimeout(() => map.invalidateSize(), 100);
+}
+
+// Stop timeline mode
+function stopTimeline() {
+    isTimelineActive = false;
+    pauseTimeline();
+    
+    document.body.classList.remove('timeline-active');
+    document.getElementById('timeline-container').classList.remove('active');
+    document.getElementById('timeline-button').classList.remove('active');
+    
+    // Remove timeline layer
+    map.removeLayer(timelineLayer);
+    timelineLayer.clearLayers();
+    
+    // Restore regular markers
+    updateMarkers();
+    
+    // Invalidate map size
+    setTimeout(() => map.invalidateSize(), 100);
+}
+
+// Play timeline animation
+function playTimeline() {
+    const playBtn = document.getElementById('timeline-play-btn');
+    const slider = document.getElementById('timeline-slider');
+    const speed = parseInt(document.getElementById('timeline-speed').value);
+    
+    if (animationInterval) {
+        pauseTimeline();
+        return;
+    }
+    
+    playBtn.textContent = '⏸ Pause';
+    playBtn.classList.add('playing');
+    
+    animationInterval = setInterval(() => {
+        let currentValue = parseInt(slider.value);
+        
+        if (currentValue >= 1000) {
+            pauseTimeline();
+            return;
+        }
+        
+        // Increment by small steps for smooth animation
+        currentValue = Math.min(currentValue + 5, 1000);
+        slider.value = currentValue;
+        updateTimelineDisplay(currentValue);
+    }, speed);
+}
+
+// Pause timeline animation
+function pauseTimeline() {
+    if (animationInterval) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+    }
+    
+    const playBtn = document.getElementById('timeline-play-btn');
+    playBtn.textContent = '▶ Play';
+    playBtn.classList.remove('playing');
+}
+
+// Reset timeline to beginning
+function resetTimeline() {
+    pauseTimeline();
+    document.getElementById('timeline-slider').value = 0;
+    updateTimelineDisplay(0);
+}
+
+// Initialize timeline event listeners
+function initTimelineEventListeners() {
+    // Timeline button in top bar
+    document.getElementById('timeline-button').addEventListener('click', function() {
+        if (isTimelineActive) {
+            stopTimeline();
+        } else {
+            startTimeline();
+        }
+    });
+    
+    // Close button
+    document.getElementById('timeline-close-btn').addEventListener('click', stopTimeline);
+    
+    // Play/Pause button
+    document.getElementById('timeline-play-btn').addEventListener('click', playTimeline);
+    
+    // Reset button
+    document.getElementById('timeline-reset-btn').addEventListener('click', resetTimeline);
+    
+    // Slider input
+    document.getElementById('timeline-slider').addEventListener('input', function() {
+        pauseTimeline(); // Stop animation when user interacts with slider
+        updateTimelineDisplay(parseInt(this.value));
+    });
+    
+    // Speed change (no need to restart if already playing)
+    document.getElementById('timeline-speed').addEventListener('change', function() {
+        if (animationInterval) {
+            pauseTimeline();
+            playTimeline();
+        }
+    });
+    
+    // Update timeline when filters change (if timeline is active)
+    document.querySelectorAll('.mode-checkbox, .band-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (isTimelineActive) {
+                updateTimelineDisplay(parseInt(document.getElementById('timeline-slider').value));
+            }
+        });
+    });
+}
+
+// ==================== END TIMELINE FUNCTIONALITY ====================
+
 // Set total QSO count
 document.getElementById('total-qso-count').textContent = qsos.length;
 document.getElementById('stats-total-qso-count').textContent = qsos.length;
@@ -415,6 +792,12 @@ applyModeColors();
 }
 
 function updateMarkers() {
+    // Skip if timeline is active - timeline handles its own markers
+    if (isTimelineActive) {
+        updateTimelineDisplay(parseInt(document.getElementById('timeline-slider').value));
+        return;
+    }
+    
     // Remove all existing markers and arcs
     map.eachLayer((layer) => {
         if (layer instanceof L.CircleMarker || layer instanceof L.Polyline) {
@@ -566,4 +949,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
         map.invalidateSize();
     }, 100);
+});
+
+// Initialize timeline event listeners
+initTimelineEventListeners();
+
+// ==================== FILTER PANEL MINIMIZE FUNCTIONALITY ====================
+
+// Filter panel minimize toggle
+document.getElementById('filter-minimize-btn').addEventListener('click', function() {
+    const panel = document.querySelector('.combined-filter-panel');
+    const btn = this;
+    
+    panel.classList.toggle('minimized');
+    
+    if (panel.classList.contains('minimized')) {
+        btn.textContent = '+';
+        btn.title = 'Expand';
+    } else {
+        btn.textContent = '−';
+        btn.title = 'Minimize';
+    }
 });
