@@ -126,6 +126,7 @@
                             <th>Mode</th>
                             <th>Grid</th>
                             <th>DXCC</th>
+                            <th>Distance (km)</th>
                             <th>Latitude</th>
                             <th>Longitude</th>
                         </tr>
@@ -143,6 +144,7 @@
                             </td>
                             <td>{{ qso.grid }}</td>
                             <td>{{ qso.dxcc }}</td>
+                            <td>{{ qso.distance if qso.distance is not none else 'N/A' }}</td>
                             <td>{{ qso.latitude }}</td>
                             <td>{{ qso.longitude }}</td>
                         </tr>

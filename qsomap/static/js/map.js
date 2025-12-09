@@ -86,6 +86,19 @@ function formatDateShort(date) {
     return `${year}-${month}-${day}`;
 }
 
+// Calculate distance between two points using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return Math.round(distance); // Return distance in km, rounded to nearest integer
+}
+
 // Initialize timeline data
 function initTimelineData() {
     // Create sorted copy of QSOs with parsed dates
@@ -350,6 +363,13 @@ function addQsoToTimelineLayer(qso) {
         fillOpacity: 0.9
     });
     
+    const distance = calculateDistance(
+        window.mapData.my_latitude,
+        window.mapData.my_longitude,
+        qso.latitude,
+        qso.longitude
+    );
+    
     marker.bindPopup(`
         <strong>${qso.call}</strong><br>
         Date: ${qso.date}<br>
@@ -357,7 +377,8 @@ function addQsoToTimelineLayer(qso) {
         Mode: ${qso.mode}<br>
         Band: ${qso.band}<br>
         Grid: ${qso.grid}<br>
-        DXCC: ${qso.dxcc}
+        DXCC: ${qso.dxcc}<br>
+        Distance: ${distance} km
     `);
     
     timelineLayer.addLayer(marker);
@@ -777,6 +798,13 @@ function addMarkers() {
             fillOpacity: 0.8
         });
 
+        const distance = calculateDistance(
+            window.mapData.my_latitude,
+            window.mapData.my_longitude,
+            qso.latitude,
+            qso.longitude
+        );
+        
         marker.bindPopup(`
             <strong>${qso.call}</strong><br>
             Date: ${qso.date}<br>
@@ -784,7 +812,8 @@ function addMarkers() {
             Mode: ${qso.mode}<br>
             Band: ${qso.band}<br>
             Grid: ${qso.grid}<br>
-            DXCC: ${qso.dxcc}
+            DXCC: ${qso.dxcc}<br>
+            Distance: ${distance} km
         `);
 
         marker.addTo(map);
@@ -973,6 +1002,13 @@ function updateMarkers() {
                 fillOpacity: 0.8
             });
 
+            const distance = calculateDistance(
+                window.mapData.my_latitude,
+                window.mapData.my_longitude,
+                qso.latitude,
+                qso.longitude
+            );
+            
             marker.bindPopup(`
                 <strong>${qso.call}</strong><br>
                 Date: ${qso.date}<br>
@@ -980,7 +1016,8 @@ function updateMarkers() {
                 Mode: ${qso.mode}<br>
                 Band: ${qso.band}<br>
                 Grid: ${qso.grid}<br>
-                DXCC: ${qso.dxcc}
+                DXCC: ${qso.dxcc}<br>
+                Distance: ${distance} km
             `);
 
             marker.addTo(map);

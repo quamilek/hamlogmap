@@ -98,7 +98,7 @@ def upload_file():
             return redirect(url_for('upload.upload_file'))
 
         # Process QSO data
-        qsos = read_log_file(file_content)
+        qsos = read_log_file(file_content, my_latitude, my_longitude)
         flash('File uploaded successfully!')
 
         return render_template(
