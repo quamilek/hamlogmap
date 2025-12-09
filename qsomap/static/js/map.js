@@ -191,6 +191,134 @@ function generateActivityBar() {
     console.log('Activity segments generated:', segments.length);
 }
 
+// Find the sliding window with maximum QSO count
+function findSlidingWindowPeak(intervalMinutes) {
+    if (timelineSortedQsos.length === 0) {
+        return { count: 0, startTime: null, endTime: null };
+    }
+    
+    const windowMs = intervalMinutes * 60 * 1000;
+    let maxCount = 0;
+    let bestStartTime = timelineSortedQsos[0].dateTime;
+    let bestEndTime = new Date(bestStartTime.getTime() + windowMs);
+    
+    // Sliding window using two pointers
+    let left = 0;
+    let right = 0;
+    const n = timelineSortedQsos.length;
+    
+    while (left < n) {
+        const windowStart = timelineSortedQsos[left].dateTime.getTime();
+        const windowEnd = windowStart + windowMs;
+        
+        // Expand right pointer to include all QSOs within window
+        while (right < n && timelineSortedQsos[right].dateTime.getTime() <= windowEnd) {
+            right++;
+        }
+        
+        const count = right - left;
+        
+        if (count > maxCount) {
+            maxCount = count;
+            bestStartTime = timelineSortedQsos[left].dateTime;
+            bestEndTime = new Date(windowEnd);
+        }
+        
+        left++;
+    }
+    
+    return {
+        count: maxCount,
+        startTime: bestStartTime,
+        endTime: bestEndTime
+    };
+}
+
+// Generate QSO rate chart
+function generateRateChart(intervalMinutes = 60) {
+    const rateChart = document.getElementById('rate-chart');
+    const yAxis = document.getElementById('rate-y-axis');
+    rateChart.innerHTML = '';
+    yAxis.innerHTML = '';
+    
+    if (timelineSortedQsos.length === 0) return;
+    
+    const totalRange = timelineMaxDate.getTime() - timelineMinDate.getTime();
+    if (totalRange === 0) return;
+    
+    const intervalMs = intervalMinutes * 60 * 1000;
+    const numBuckets = Math.ceil(totalRange / intervalMs) + 1;
+    
+    // Count QSOs in each time bucket
+    const buckets = new Array(numBuckets).fill(0);
+    const bucketTimes = [];
+    
+    for (let i = 0; i < numBuckets; i++) {
+        bucketTimes.push(new Date(timelineMinDate.getTime() + i * intervalMs));
+    }
+    
+    timelineSortedQsos.forEach(qso => {
+        const bucketIndex = Math.floor((qso.dateTime.getTime() - timelineMinDate.getTime()) / intervalMs);
+        if (bucketIndex >= 0 && bucketIndex < numBuckets) {
+            buckets[bucketIndex]++;
+        }
+    });
+    
+    // Find max for scaling
+    const maxCount = Math.max(...buckets, 1);
+    const peakIndex = buckets.indexOf(maxCount);
+    const peakTime = bucketTimes[peakIndex];
+    
+    // Calculate sliding window maximum (true peak rate)
+    const slidingWindowPeak = findSlidingWindowPeak(intervalMinutes);
+    
+    // Update peak info with both bucket peak and sliding window peak
+    const peakInfo = document.getElementById('rate-peak-info');
+    peakInfo.innerHTML = `Best ${intervalMinutes}min: <strong>${slidingWindowPeak.count} QSO</strong> @ ${formatDateTime(slidingWindowPeak.startTime).slice(11)}`;
+    
+    // Generate Y-axis labels
+    const yLabels = [maxCount, Math.round(maxCount / 2), 0];
+    yLabels.forEach(value => {
+        const label = document.createElement('span');
+        label.textContent = value;
+        yAxis.appendChild(label);
+    });
+    
+    // Create bars
+    buckets.forEach((count, index) => {
+        const bar = document.createElement('div');
+        bar.className = 'rate-bar';
+        
+        const heightPercent = (count / maxCount) * 100;
+        bar.style.height = count > 0 ? `${Math.max(heightPercent, 5)}%` : '2px';
+        
+        if (count === 0) {
+            bar.style.opacity = '0.2';
+        }
+        
+        // Highlight peak
+        if (index === peakIndex && count > 0) {
+            bar.classList.add('highlighted');
+        }
+        
+        // Add tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'rate-bar-tooltip';
+        const timeStr = formatDateTime(bucketTimes[index]).slice(11);
+        tooltip.textContent = `${timeStr}: ${count} QSO`;
+        bar.appendChild(tooltip);
+        
+        // Click to jump to this time
+        bar.addEventListener('click', () => {
+            const sliderValue = getSliderValueFromDate(bucketTimes[index]);
+            document.getElementById('timeline-slider').value = sliderValue;
+            updateTimelineDisplay(sliderValue);
+        });
+        
+        rateChart.appendChild(bar);
+    });
+}
+
 // Get date from slider value (0-1000)
 function getDateFromSliderValue(value) {
     const range = timelineMaxDate.getTime() - timelineMinDate.getTime();
@@ -292,6 +420,10 @@ function startTimeline() {
     
     // Add timeline layer to map
     timelineLayer.addTo(map);
+    
+    // Generate rate chart
+    const interval = parseInt(document.getElementById('rate-interval').value);
+    generateRateChart(interval);
     
     // Reset slider
     document.getElementById('timeline-slider').value = 0;
@@ -400,6 +532,13 @@ function initTimelineEventListeners() {
         if (animationInterval) {
             pauseTimeline();
             playTimeline();
+        }
+    });
+    
+    // Rate interval change
+    document.getElementById('rate-interval').addEventListener('change', function() {
+        if (isTimelineActive) {
+            generateRateChart(parseInt(this.value));
         }
     });
     

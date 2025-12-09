@@ -771,6 +771,139 @@ body {
     border: 1px solid #2a2a4a;
 }
 
+/* QSO Rate Chart */
+.rate-chart-container {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rate-chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.rate-chart-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rate-chart-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rate-interval-select {
+    width: 85px;
+    background: #2a2a4a;
+    border: 1px solid #3a3a5a;
+    color: #fff;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.rate-interval-select:focus {
+    border-color: #00d9ff;
+    box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.2);
+    outline: none;
+}
+
+.rate-peak-info {
+    font-size: 0.7rem;
+    color: #00d9ff;
+    background: rgba(0, 217, 255, 0.1);
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 217, 255, 0.2);
+}
+
+.rate-peak-info strong {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.rate-chart-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+}
+
+.rate-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 28px;
+    padding: 4px 0;
+    font-size: 0.6rem;
+    color: #888;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+
+.rate-y-axis span {
+    line-height: 1;
+}
+
+.rate-chart {
+    flex: 1;
+    height: 50px;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 4px;
+    position: relative;
+}
+
+.rate-bar {
+    flex: 1;
+    min-width: 2px;
+    background: linear-gradient(180deg, #00d9ff 0%, #0099cc 100%);
+    border-radius: 1px 1px 0 0;
+    transition: height 0.2s ease, opacity 0.2s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.rate-bar:hover {
+    background: linear-gradient(180deg, #4de8ff 0%, #00bfff 100%);
+    box-shadow: 0 0 8px rgba(0, 217, 255, 0.6);
+}
+
+.rate-bar.highlighted {
+    background: linear-gradient(180deg, #e94560 0%, #c73e54 100%);
+    box-shadow: 0 0 6px rgba(233, 69, 96, 0.5);
+}
+
+.rate-bar-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+}
+
+.rate-bar:hover .rate-bar-tooltip {
+    opacity: 1;
+}
+
 /* Timeline button active state in top bar */
 #timeline-button.active {
     background: #e94560;
@@ -779,7 +912,7 @@ body {
 
 /* Adjust map when timeline is active */
 body.timeline-active #map {
-    padding-bottom: 120px;
+    padding-bottom: 180px;
 }
 
 /* Filter panel position doesn't change with timeline since it's now at top-right */
@@ -787,7 +920,31 @@ body.timeline-active #map {
 /* Mobile responsive styles for timeline */
 @media (max-width: 768px) {
     .timeline-panel {
-        padding: 12px 16px;
+        padding: 10px 12px;
+    }
+
+    .rate-chart-container {
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+    }
+
+    .rate-chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .rate-chart {
+        height: 35px;
+    }
+
+    .rate-y-axis {
+        width: 22px;
+        font-size: 0.55rem;
+    }
+
+    .rate-peak-info {
+        font-size: 0.65rem;
     }
 
     .timeline-header {
