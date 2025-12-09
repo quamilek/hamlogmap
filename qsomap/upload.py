@@ -7,9 +7,10 @@ upload_bp = Blueprint('upload', __name__)
 
 
 def allowed_file(filename):
-    """Check if the uploaded file has an allowed extension (ADIF or ADI)"""
+    """Check if the uploaded file has an allowed extension (ADIF, ADI, or Cabrillo)"""
+    allowed_extensions = {'adif', 'adi', 'cbr', 'log', 'cabrillo', 'cab'}
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in {'adif', 'adi'}
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 
 def validate_file(file):
@@ -23,7 +24,7 @@ def validate_file(file):
         return False
 
     if not allowed_file(file.filename):
-        flash('Invalid file type. Please upload only ADIF (.adif) or ADI (.adi) files.', 'error')
+        flash('Invalid file type. Please upload ADIF (.adif, .adi) or Cabrillo (.cbr, .log, .cabrillo) files.', 'error')
         return False
 
     return True
