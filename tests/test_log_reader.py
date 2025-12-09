@@ -1,5 +1,5 @@
 """
-Test suite for ADIF log file reading and parsing functionality.
+Test suite for ADIF and Cabrillo log file reading and parsing functionality.
 """
 import pytest
 
@@ -10,6 +10,19 @@ def safe_import_log_reader():
         from qsomap.common.log_reader import read_log_file, get_band_color, get_grid_from_call
         from qsomap.common.grid_validator import validate_grid_square
         return read_log_file, get_band_color, get_grid_from_call, validate_grid_square
+    except ImportError as e:
+        pytest.skip(f"Skipping tests due to missing dependencies: {e}")
+
+
+def safe_import_cabrillo():
+    """Safely import Cabrillo-related functions."""
+    try:
+        from qsomap.common.log_reader import (
+            detect_log_format, 
+            CabrilloParser,
+            read_log_file
+        )
+        return detect_log_format, CabrilloParser, read_log_file
     except ImportError as e:
         pytest.skip(f"Skipping tests due to missing dependencies: {e}")
 
@@ -268,3 +281,349 @@ class TestLogReader:
         assert 'grid' in qso
         assert validate_grid_square(qso['grid']), f"Final grid '{qso['grid']}' should be valid"
         assert qso['call'] == 'SP0ABC'
+
+
+class TestLogFormatDetection:
+    """Test cases for log format auto-detection."""
+
+    @pytest.mark.unit
+    def test_detect_adif_format_with_eoh(self):
+        """Test detection of ADIF format with EOH marker."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        adif_content = """<ADIF_VER:5>3.1.4
+<EOH>
+<CALL:6>SP0ABC<BAND:3>20m<EOR>
+"""
+        assert detect_log_format(adif_content) == 'adif'
+
+    @pytest.mark.unit
+    def test_detect_adif_format_with_eor(self):
+        """Test detection of ADIF format with EOR marker."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        adif_content = """<CALL:6>SP0ABC<BAND:3>20m<EOR>"""
+        assert detect_log_format(adif_content) == 'adif'
+
+    @pytest.mark.unit
+    def test_detect_adif_format_with_field_pattern(self):
+        """Test detection of ADIF format with field pattern."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        adif_content = """<CALL:6>SP0ABC<BAND:3>20m"""
+        assert detect_log_format(adif_content) == 'adif'
+
+    @pytest.mark.unit
+    def test_detect_cabrillo_format_with_start_marker(self):
+        """Test detection of Cabrillo format with START-OF-LOG marker."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        cabrillo_content = """START-OF-LOG: 3.0
+CALLSIGN: SP3WKW
+CONTEST: CQ-WW-CW
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+END-OF-LOG:
+"""
+        assert detect_log_format(cabrillo_content) == 'cabrillo'
+
+    @pytest.mark.unit
+    def test_detect_cabrillo_format_with_qso_lines(self):
+        """Test detection of Cabrillo format from QSO lines."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        # Cabrillo without START-OF-LOG but with QSO lines
+        cabrillo_content = """QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+QSO:  7025 CW 2023-11-25 1430 SP3WKW 599 15 OK1XYZ 599 14
+"""
+        assert detect_log_format(cabrillo_content) == 'cabrillo'
+
+    @pytest.mark.unit
+    def test_detect_cabrillo_format_case_insensitive(self):
+        """Test that Cabrillo detection is case insensitive."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        cabrillo_content = """start-of-log: 3.0
+callsign: sp3wkw
+qso: 14025 cw 2023-11-25 1423 sp3wkw 599 15 dl1abc 599 14
+end-of-log:
+"""
+        assert detect_log_format(cabrillo_content) == 'cabrillo'
+
+
+class TestCabrilloParser:
+    """Test cases for Cabrillo log file parsing."""
+
+    @pytest.mark.unit
+    def test_parse_single_qso(self):
+        """Test parsing a single QSO line."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """START-OF-LOG: 3.0
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+END-OF-LOG:
+"""
+        qsos = parser.parse(cabrillo_content)
+
+        assert len(qsos) == 1
+        qso = qsos[0]
+        assert qso['CALL'] == 'DL1ABC'
+        assert qso['QSO_DATE'] == '20231125'
+        assert qso['TIME_ON'] == '1423'
+        assert qso['MODE'] == 'CW'
+        assert qso['BAND'] == '20m'
+
+    @pytest.mark.unit
+    def test_parse_multiple_qsos(self):
+        """Test parsing multiple QSO lines."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """START-OF-LOG: 3.0
+CALLSIGN: SP3WKW
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+QSO:  7025 CW 2023-11-25 1430 SP3WKW 599 15 OK1XYZ 599 14
+QSO: 21025 CW 2023-11-25 1445 SP3WKW 599 15 UA3ABC 599 14
+END-OF-LOG:
+"""
+        qsos = parser.parse(cabrillo_content)
+
+        assert len(qsos) == 3
+        assert qsos[0]['CALL'] == 'DL1ABC'
+        assert qsos[0]['BAND'] == '20m'
+        assert qsos[1]['CALL'] == 'OK1XYZ'
+        assert qsos[1]['BAND'] == '40m'
+        assert qsos[2]['CALL'] == 'UA3ABC'
+        assert qsos[2]['BAND'] == '15m'
+
+    @pytest.mark.unit
+    def test_parse_ssb_mode(self):
+        """Test parsing SSB (PH) mode QSO."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """START-OF-LOG: 3.0
+QSO: 14250 PH 2023-11-25 1500 SP3WKW 59 15 W1AW 59 05
+END-OF-LOG:
+"""
+        qsos = parser.parse(cabrillo_content)
+
+        assert len(qsos) == 1
+        assert qsos[0]['MODE'] == 'SSB'  # PH should be converted to SSB
+        assert qsos[0]['CALL'] == 'W1AW'
+
+    @pytest.mark.unit
+    def test_parse_rtty_mode(self):
+        """Test parsing RTTY (RY) mode QSO."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """START-OF-LOG: 3.0
+QSO: 14085 RY 2023-11-25 1530 SP3WKW 599 15 JA1ABC 599 25
+END-OF-LOG:
+"""
+        qsos = parser.parse(cabrillo_content)
+
+        assert len(qsos) == 1
+        assert qsos[0]['MODE'] == 'RTTY'  # RY should be converted to RTTY
+
+    @pytest.mark.unit
+    def test_freq_to_band_conversion(self):
+        """Test frequency to band conversion."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+
+        test_cases = [
+            (1830, '160m'),
+            (3550, '80m'),
+            (7025, '40m'),
+            (10125, '30m'),
+            (14025, '20m'),
+            (18100, '17m'),
+            (21025, '15m'),
+            (24900, '12m'),
+            (28025, '10m'),
+            (50125, '6m'),
+            (144300, '2m'),
+            (432100, '70cm'),
+        ]
+
+        for freq, expected_band in test_cases:
+            result = parser._freq_to_band(freq)
+            assert result == expected_band, f"Frequency {freq} kHz should be {expected_band}, got {result}"
+
+    @pytest.mark.unit
+    def test_mode_normalization(self):
+        """Test mode normalization."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+
+        test_cases = [
+            ('CW', 'CW'),
+            ('PH', 'SSB'),
+            ('RY', 'RTTY'),
+            ('RTTY', 'RTTY'),
+            ('FM', 'FM'),
+            ('SSB', 'SSB'),
+            ('USB', 'SSB'),
+            ('LSB', 'SSB'),
+            ('FT8', 'FT8'),
+            ('FT4', 'FT4'),
+        ]
+
+        for input_mode, expected in test_cases:
+            result = parser._normalize_mode(input_mode)
+            assert result == expected, f"Mode '{input_mode}' should normalize to '{expected}', got '{result}'"
+
+    @pytest.mark.unit
+    def test_parse_empty_content(self):
+        """Test parsing empty Cabrillo content."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        qsos = parser.parse("")
+        assert len(qsos) == 0
+
+    @pytest.mark.unit
+    def test_parse_content_without_qso_lines(self):
+        """Test parsing Cabrillo content without QSO lines."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """START-OF-LOG: 3.0
+CALLSIGN: SP3WKW
+CONTEST: CQ-WW-CW
+END-OF-LOG:
+"""
+        qsos = parser.parse(cabrillo_content)
+        assert len(qsos) == 0
+
+    @pytest.mark.unit
+    def test_parse_skips_invalid_qso_lines(self):
+        """Test that parser skips invalid QSO lines."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """START-OF-LOG: 3.0
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+QSO: invalid line
+QSO: 7025 CW 2023-11-25 1430 SP3WKW 599 15 OK1XYZ 599 14
+END-OF-LOG:
+"""
+        qsos = parser.parse(cabrillo_content)
+
+        # Should have 2 valid QSOs, skipping the invalid one
+        assert len(qsos) == 2
+        assert qsos[0]['CALL'] == 'DL1ABC'
+        assert qsos[1]['CALL'] == 'OK1XYZ'
+
+    @pytest.mark.unit
+    def test_parse_date_format_conversion(self):
+        """Test date format conversion from YYYY-MM-DD to YYYYMMDD."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """QSO: 14025 CW 2024-12-31 2359 SP3WKW 599 15 DL1ABC 599 14"""
+        qsos = parser.parse(cabrillo_content)
+
+        assert len(qsos) == 1
+        assert qsos[0]['QSO_DATE'] == '20241231'
+        assert qsos[0]['TIME_ON'] == '2359'
+
+    @pytest.mark.unit  
+    def test_parse_callsign_uppercase(self):
+        """Test that callsigns are converted to uppercase."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        parser = CabrilloParser()
+        cabrillo_content = """QSO: 14025 CW 2023-11-25 1423 sp3wkw 599 15 dl1abc 599 14"""
+        qsos = parser.parse(cabrillo_content)
+
+        assert len(qsos) == 1
+        assert qsos[0]['CALL'] == 'DL1ABC'
+
+
+class TestCabrilloIntegration:
+    """Integration tests for Cabrillo file processing through full pipeline."""
+
+    @pytest.mark.integration
+    def test_read_log_file_with_cabrillo(self):
+        """Test that read_log_file correctly processes Cabrillo format."""
+        read_log_file, get_band_color, get_grid_from_call, validate_grid_square = safe_import_log_reader()
+
+        cabrillo_content = """START-OF-LOG: 3.0
+CALLSIGN: SP3WKW
+CONTEST: CQ-WW-CW
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+QSO:  7025 CW 2023-11-25 1430 SP3WKW 599 15 OK1XYZ 599 14
+END-OF-LOG:
+"""
+        qsos = read_log_file(cabrillo_content)
+
+        assert len(qsos) == 2
+
+        # Check first QSO has all required fields
+        qso = qsos[0]
+        assert qso['call'] == 'DL1ABC'
+        assert qso['date'] == '20231125'
+        assert qso['time'] == '1423'
+        assert qso['mode'] == 'CW'
+        assert qso['band'] == '20m'
+        assert 'grid' in qso
+        assert 'latitude' in qso
+        assert 'longitude' in qso
+        assert 'dxcc' in qso
+        assert 'color' in qso
+
+    @pytest.mark.integration
+    def test_read_log_file_auto_detects_cabrillo(self):
+        """Test that read_log_file auto-detects Cabrillo format."""
+        read_log_file, get_band_color, get_grid_from_call, validate_grid_square = safe_import_log_reader()
+
+        # Content without explicit START-OF-LOG but with QSO lines
+        cabrillo_content = """QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+QSO:  7025 PH 2023-11-25 1430 SP3WKW 59 15 W1AW 59 05
+"""
+        qsos = read_log_file(cabrillo_content)
+
+        assert len(qsos) == 2
+        assert qsos[0]['call'] == 'DL1ABC'
+        assert qsos[0]['mode'] == 'CW'
+        assert qsos[1]['call'] == 'W1AW'
+        assert qsos[1]['mode'] == 'SSB'  # PH converted to SSB
+
+    @pytest.mark.integration
+    def test_cabrillo_qso_gets_grid_from_callsign(self):
+        """Test that Cabrillo QSOs get grid resolved from callsign."""
+        read_log_file, get_band_color, get_grid_from_call, validate_grid_square = safe_import_log_reader()
+
+        cabrillo_content = """START-OF-LOG: 3.0
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+END-OF-LOG:
+"""
+        qsos = read_log_file(cabrillo_content)
+
+        assert len(qsos) == 1
+        qso = qsos[0]
+
+        # Grid should be resolved (Cabrillo doesn't have GRIDSQUARE field)
+        assert 'grid' in qso
+        assert qso['grid'] != ''
+        assert validate_grid_square(qso['grid']), f"Grid '{qso['grid']}' should be valid"
+
+    @pytest.mark.unit
+    def test_mixed_format_detection(self):
+        """Test that format detection works correctly for different inputs."""
+        detect_log_format, CabrilloParser, read_log_file = safe_import_cabrillo()
+
+        # ADIF content
+        adif_content = """<EOH><CALL:6>SP0ABC<BAND:3>20m<EOR>"""
+        assert detect_log_format(adif_content) == 'adif'
+
+        # Cabrillo content
+        cabrillo_content = """START-OF-LOG: 3.0
+QSO: 14025 CW 2023-11-25 1423 SP3WKW 599 15 DL1ABC 599 14
+END-OF-LOG:"""
+        assert detect_log_format(cabrillo_content) == 'cabrillo'
