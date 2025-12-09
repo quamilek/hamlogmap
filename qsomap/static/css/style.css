@@ -102,6 +102,11 @@ body {
     overflow-y: auto;
 }
 
+.longest-distance-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
 .mode-filter-panel {
     position: fixed;
     top: 80px;
