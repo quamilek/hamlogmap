@@ -162,6 +162,25 @@
     </script>
     <!-- Timeline Panel -->
     <div id="timeline-container" class="timeline-panel">
+        <!-- QSO Rate Chart -->
+        <div class="rate-chart-container">
+            <div class="rate-chart-header">
+                <span class="rate-chart-title">QSO Rate</span>
+                <div class="rate-chart-controls">
+                    <select id="rate-interval" class="form-select form-select-sm rate-interval-select">
+                        <option value="15">15 min</option>
+                        <option value="30">30 min</option>
+                        <option value="60" selected>1 hour</option>
+                    </select>
+                    <span id="rate-peak-info" class="rate-peak-info"></span>
+                </div>
+            </div>
+            <div class="rate-chart-wrapper">
+                <div id="rate-y-axis" class="rate-y-axis"></div>
+                <div id="rate-chart" class="rate-chart"></div>
+            </div>
+        </div>
+        
         <div class="timeline-header">
             <div class="timeline-info">
                 <span id="timeline-current-date" class="timeline-date">--</span>
