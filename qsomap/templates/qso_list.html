@@ -113,6 +113,32 @@
                     </div>
                 </div>
             </div>
+            <div class="stats-container mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Longest Distance QSOs</h5>
+                        <p class="card-text">Top 20 stations by distance</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Call</th>
+                                        <th>Distance (km)</th>
+                                        <th>Grid</th>
+                                        <th>DXCC</th>
+                                        <th>Band</th>
+                                        <th>Mode</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="longest-distance-list">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="table-container">
                 <h5>Total QSOs: <span id="total-qso-count">0</span></h5>
                 <table class="table table-striped">
@@ -144,7 +170,7 @@
                             </td>
                             <td>{{ qso.grid }}</td>
                             <td>{{ qso.dxcc }}</td>
-                            <td>{{ qso.distance if qso.distance is not None else 'N/A' }}</td>
+                            <td>{{ qso.distance if qso.distance is not none else 'N/A' }}</td>
                             <td>{{ qso.latitude }}</td>
                             <td>{{ qso.longitude }}</td>
                         </tr>

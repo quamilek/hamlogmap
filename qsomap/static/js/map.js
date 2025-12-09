@@ -673,6 +673,36 @@ Object.entries(bandList)
             </tr>`;
     });
 
+// Create Longest Distance QSOs list
+const longestDistanceListElement = document.getElementById('longest-distance-list');
+const qsosWithDistance = qsos
+    .filter(qso => qso.distance !== null && qso.distance !== undefined)
+    .sort((a, b) => b.distance - a.distance)
+    .slice(0, 20);
+
+qsosWithDistance.forEach((qso, index) => {
+    const modeColor = getModeColor(qso.mode);
+    const bandColor = getBandColor(qso.band);
+    longestDistanceListElement.innerHTML += `
+        <tr>
+            <td>${index + 1}</td>
+            <td><strong>${qso.call}</strong></td>
+            <td><strong>${qso.distance}</strong></td>
+            <td>${qso.grid}</td>
+            <td>${qso.dxcc}</td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; border-radius: 50%; background-color: ${bandColor}; border: 1px solid #ccc;"></div>
+                    ${qso.band}
+                </div>
+            </td>
+            <td>
+                <div style="background-color: ${modeColor}; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block;">${qso.mode}</div>
+            </td>
+            <td>${qso.date}</td>
+        </tr>`;
+});
+
 function getBandColor(band) {
     const bandColors = {
         '2200m': '#ff4500',  // Orange Red
