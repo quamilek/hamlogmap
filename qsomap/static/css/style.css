@@ -43,14 +43,23 @@ body {
 }
 
 .content-container {
-    position: relative;
-    z-index: 2;
-    background: rgba(255, 255, 255, 0.9);
-    margin: 20px;
-    margin-top: 80px;
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.95);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.content-container .data-container {
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 .small-marker {
@@ -421,6 +430,28 @@ body {
         width: 180px;
     }
 
+    .content-container {
+        top: 140px;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        padding: 15px;
+    }
+
+    .content-container .row {
+        flex-direction: column;
+    }
+
+    .content-container .col-md-6 {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+
+    .dxcc-table-container,
+    .band-table-container {
+        max-height: 250px;
+    }
+
     .combined-filter-panel.minimized {
         bottom: 10px;
         right: 10px;
@@ -471,6 +502,10 @@ body {
     
     .filter-panel-body {
         max-height: 30vh;
+    }
+
+    .content-container {
+        top: 160px;
     }
 }
 
