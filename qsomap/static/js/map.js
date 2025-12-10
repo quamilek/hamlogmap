@@ -86,19 +86,6 @@ function formatDateShort(date) {
     return `${year}-${month}-${day}`;
 }
 
-// Calculate distance between two points using Haversine formula
-function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return Math.round(distance); // Return distance in km, rounded to nearest integer
-}
-
 // Initialize timeline data
 function initTimelineData() {
     // Create sorted copy of QSOs with parsed dates
@@ -363,12 +350,7 @@ function addQsoToTimelineLayer(qso) {
         fillOpacity: 0.9
     });
     
-    const distance = calculateDistance(
-        window.mapData.my_latitude,
-        window.mapData.my_longitude,
-        qso.latitude,
-        qso.longitude
-    );
+    const distanceDisplay = qso.distance !== null && qso.distance !== undefined ? `${qso.distance} km` : 'N/A';
     
     marker.bindPopup(`
         <strong>${qso.call}</strong><br>
@@ -378,7 +360,7 @@ function addQsoToTimelineLayer(qso) {
         Band: ${qso.band}<br>
         Grid: ${qso.grid}<br>
         DXCC: ${qso.dxcc}<br>
-        Distance: ${distance} km
+        Distance: ${distanceDisplay}
     `);
     
     timelineLayer.addLayer(marker);
@@ -687,9 +669,8 @@ qsosWithDistance.forEach((qso, index) => {
         <tr>
             <td>${index + 1}</td>
             <td><strong>${qso.call}</strong></td>
-            <td><strong>${qso.distance}</strong></td>
-            <td>${qso.grid}</td>
             <td>${qso.dxcc}</td>
+            <td><strong>${qso.distance}</strong></td>
             <td>
                 <div style="display: flex; align-items: center; gap: 5px;">
                     <div style="width: 15px; height: 15px; border-radius: 50%; background-color: ${bandColor}; border: 1px solid #ccc;"></div>
@@ -700,6 +681,7 @@ qsosWithDistance.forEach((qso, index) => {
                 <div style="background-color: ${modeColor}; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block;">${qso.mode}</div>
             </td>
             <td>${qso.date}</td>
+            <td>${qso.grid}</td>
         </tr>`;
 });
 
@@ -828,12 +810,7 @@ function addMarkers() {
             fillOpacity: 0.8
         });
 
-        const distance = calculateDistance(
-            window.mapData.my_latitude,
-            window.mapData.my_longitude,
-            qso.latitude,
-            qso.longitude
-        );
+        const distanceDisplay = qso.distance !== null && qso.distance !== undefined ? `${qso.distance} km` : 'N/A';
         
         marker.bindPopup(`
             <strong>${qso.call}</strong><br>
@@ -843,7 +820,7 @@ function addMarkers() {
             Band: ${qso.band}<br>
             Grid: ${qso.grid}<br>
             DXCC: ${qso.dxcc}<br>
-            Distance: ${distance} km
+            Distance: ${distanceDisplay}
         `);
 
         marker.addTo(map);
@@ -1032,12 +1009,7 @@ function updateMarkers() {
                 fillOpacity: 0.8
             });
 
-            const distance = calculateDistance(
-                window.mapData.my_latitude,
-                window.mapData.my_longitude,
-                qso.latitude,
-                qso.longitude
-            );
+            const distanceDisplay = qso.distance !== null && qso.distance !== undefined ? `${qso.distance} km` : 'N/A';
             
             marker.bindPopup(`
                 <strong>${qso.call}</strong><br>
@@ -1047,7 +1019,7 @@ function updateMarkers() {
                 Band: ${qso.band}<br>
                 Grid: ${qso.grid}<br>
                 DXCC: ${qso.dxcc}<br>
-                Distance: ${distance} km
+                Distance: ${distanceDisplay}
             `);
 
             marker.addTo(map);
