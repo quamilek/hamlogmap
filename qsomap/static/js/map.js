@@ -301,11 +301,13 @@ function generateRateChart(intervalMinutes = 60) {
             bar.classList.add('highlighted');
         }
         
-        // Add tooltip
+        // Add tooltip with time range
         const tooltip = document.createElement('div');
         tooltip.className = 'rate-bar-tooltip';
-        const timeStr = formatDateTime(bucketTimes[index]).slice(11);
-        tooltip.textContent = `${timeStr}: ${count} QSO`;
+        const startTimeStr = formatDateTime(bucketTimes[index]).slice(11);
+        const endTime = new Date(bucketTimes[index].getTime() + intervalMs);
+        const endTimeStr = formatDateTime(endTime).slice(11);
+        tooltip.textContent = `${startTimeStr} - ${endTimeStr}: ${count} QSO`;
         bar.appendChild(tooltip);
         
         // Click to jump to this time
