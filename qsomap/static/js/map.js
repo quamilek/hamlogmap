@@ -350,6 +350,8 @@ function addQsoToTimelineLayer(qso) {
         fillOpacity: 0.9
     });
     
+    const distanceDisplay = qso.distance !== null && qso.distance !== undefined ? `${qso.distance} km` : 'N/A';
+    
     marker.bindPopup(`
         <strong>${qso.call}</strong><br>
         Date: ${qso.date}<br>
@@ -357,7 +359,8 @@ function addQsoToTimelineLayer(qso) {
         Mode: ${qso.mode}<br>
         Band: ${qso.band}<br>
         Grid: ${qso.grid}<br>
-        DXCC: ${qso.dxcc}
+        DXCC: ${qso.dxcc}<br>
+        Distance: ${distanceDisplay}
     `);
     
     timelineLayer.addLayer(marker);
@@ -652,6 +655,36 @@ Object.entries(bandList)
             </tr>`;
     });
 
+// Create Longest Distance QSOs list
+const longestDistanceListElement = document.getElementById('longest-distance-list');
+const qsosWithDistance = qsos
+    .filter(qso => qso.distance !== null && qso.distance !== undefined)
+    .sort((a, b) => b.distance - a.distance)
+    .slice(0, 20);
+
+qsosWithDistance.forEach((qso, index) => {
+    const modeColor = getModeColor(qso.mode);
+    const bandColor = getBandColor(qso.band);
+    longestDistanceListElement.innerHTML += `
+        <tr>
+            <td>${index + 1}</td>
+            <td><strong>${qso.call}</strong></td>
+            <td>${qso.dxcc}</td>
+            <td><strong>${qso.distance}</strong></td>
+            <td>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div style="width: 15px; height: 15px; border-radius: 50%; background-color: ${bandColor}; border: 1px solid #ccc;"></div>
+                    ${qso.band}
+                </div>
+            </td>
+            <td>
+                <div style="background-color: ${modeColor}; color: white; padding: 2px 5px; border-radius: 3px; display: inline-block;">${qso.mode}</div>
+            </td>
+            <td>${qso.date}</td>
+            <td>${qso.grid}</td>
+        </tr>`;
+});
+
 function getBandColor(band) {
     const bandColors = {
         '2200m': '#ff4500',  // Orange Red
@@ -777,6 +810,8 @@ function addMarkers() {
             fillOpacity: 0.8
         });
 
+        const distanceDisplay = qso.distance !== null && qso.distance !== undefined ? `${qso.distance} km` : 'N/A';
+        
         marker.bindPopup(`
             <strong>${qso.call}</strong><br>
             Date: ${qso.date}<br>
@@ -784,7 +819,8 @@ function addMarkers() {
             Mode: ${qso.mode}<br>
             Band: ${qso.band}<br>
             Grid: ${qso.grid}<br>
-            DXCC: ${qso.dxcc}
+            DXCC: ${qso.dxcc}<br>
+            Distance: ${distanceDisplay}
         `);
 
         marker.addTo(map);
@@ -973,6 +1009,8 @@ function updateMarkers() {
                 fillOpacity: 0.8
             });
 
+            const distanceDisplay = qso.distance !== null && qso.distance !== undefined ? `${qso.distance} km` : 'N/A';
+            
             marker.bindPopup(`
                 <strong>${qso.call}</strong><br>
                 Date: ${qso.date}<br>
@@ -980,7 +1018,8 @@ function updateMarkers() {
                 Mode: ${qso.mode}<br>
                 Band: ${qso.band}<br>
                 Grid: ${qso.grid}<br>
-                DXCC: ${qso.dxcc}
+                DXCC: ${qso.dxcc}<br>
+                Distance: ${distanceDisplay}
             `);
 
             marker.addTo(map);

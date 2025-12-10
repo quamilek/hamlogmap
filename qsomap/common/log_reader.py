@@ -1,11 +1,45 @@
 import logging
 import re
+import math
 import adif_io
 from flask import current_app
 from pyhamtools.locator import latlong_to_locator, locator_to_latlong
 from .grid_validator import validate_grid_square
 
 logger = logging.getLogger(__name__)
+
+
+# ==================== DISTANCE CALCULATION ====================
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate distance between two points using Haversine formula.
+    
+    Args:
+        lat1: Latitude of first point in degrees
+        lon1: Longitude of first point in degrees
+        lat2: Latitude of second point in degrees
+        lon2: Longitude of second point in degrees
+        
+    Returns:
+        Distance in kilometers, rounded to nearest integer
+    """
+    R = 6371  # Earth's radius in kilometers
+    
+    # Convert degrees to radians
+    lat1_rad = math.radians(lat1)
+    lon1_rad = math.radians(lon1)
+    lat2_rad = math.radians(lat2)
+    lon2_rad = math.radians(lon2)
+    
+    # Haversine formula
+    dlat = lat2_rad - lat1_rad
+    dlon = lon2_rad - lon1_rad
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance = R * c
+    
+    return round(distance)  # Return distance in km, rounded to nearest integer
 
 
 # ==================== LOG FORMAT DETECTION ====================
@@ -302,11 +336,13 @@ class BandColorMapper:
 class LogFileProcessor:
     """Processor for reading and enhancing amateur radio log files."""
     
-    def __init__(self):
+    def __init__(self, my_latitude=None, my_longitude=None):
         """Initialize with required dependencies."""
         self.grid_resolver = CallsignGridResolver()
         self.color_mapper = BandColorMapper()
         self.cabrillo_parser = CabrilloParser()
+        self.my_latitude = my_latitude
+        self.my_longitude = my_longitude
     
     def process(self, file_content):
         """
@@ -367,6 +403,16 @@ class LogFileProcessor:
         # Convert grid to coordinates
         latitude, longitude = locator_to_latlong(grid)
         
+        # Calculate distance if user location is available
+        distance = None
+        if self.my_latitude is not None and self.my_longitude is not None:
+            distance = calculate_distance(
+                self.my_latitude,
+                self.my_longitude,
+                latitude,
+                longitude
+            )
+        
         return {
             'call': call,
             'date': date,
@@ -377,7 +423,8 @@ class LogFileProcessor:
             'dxcc': dxcc,
             'latitude': latitude,
             'longitude': longitude,
-            'color': self.color_mapper.get_color(band)
+            'color': self.color_mapper.get_color(band),
+            'distance': distance
         }
     
     def _get_callsign_info(self, call):
@@ -418,7 +465,7 @@ class LogFileProcessor:
 
 
 # Public API functions for backwards compatibility
-def read_log_file(file_content):
+def read_log_file(file_content, my_latitude=None, my_longitude=None):
     """
     Read and enhance amateur radio log file.
     
@@ -426,11 +473,13 @@ def read_log_file(file_content):
     
     Args:
         file_content: ADIF file content as string
+        my_latitude: User's latitude (optional, for distance calculation)
+        my_longitude: User's longitude (optional, for distance calculation)
         
     Returns:
         List of enhanced QSO dictionaries with grid, DXCC, and coordinate info
     """
-    processor = LogFileProcessor()
+    processor = LogFileProcessor(my_latitude, my_longitude)
     return processor.process(file_content)
 
 
