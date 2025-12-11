@@ -15,7 +15,7 @@
 <body>
     <div class="top-bar">
         <div class="top-bar-content">
-            <h2 class="top-bar-title">QSO map - {{ callsign }} - {{ filename }}</h2>
+            <h2 class="top-bar-title">QSO map - {{ callsign | safe }} - {{ filename | safe }}</h2>
             <div class="top-bar-controls">
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" id="uniform-color-checkbox" checked>

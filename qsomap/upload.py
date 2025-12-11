@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, flash, url_for
 from pyhamtools.locator import locator_to_latlong
 from qsomap.common.log_reader import read_log_file
 from qsomap.common.grid_validator import validate_grid_square
-from markupsafe import escape
+from markupsafe import Markup
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -15,7 +15,7 @@ def sanitize_text_input(text):
         text: Input text string or None
 
     Returns:
-        Sanitized string or None if input is None/empty
+        Markup object with sanitized text or None if input is None/empty
     """
     if text is None:
         return None
@@ -27,10 +27,9 @@ def sanitize_text_input(text):
     if not sanitized:
         return None
 
-    # Escape HTML to prevent XSS (returns Markup object, convert to str)
-    sanitized = str(escape(sanitized))
-
-    return sanitized
+    # Escape HTML to prevent XSS and return as Markup object
+    # Markup objects are treated as safe by Jinja2 and won't be double-escaped
+    return Markup.escape(sanitized)
 
 
 def allowed_file(filename):
