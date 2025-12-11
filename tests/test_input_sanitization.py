@@ -123,8 +123,8 @@ class TestInputSanitization:
             'file': (BytesIO(adif_content.encode('utf-8')), 'test.adif')
         }, follow_redirects=True)
 
-        # Should succeed (callsign is optional based on current implementation)
-        # The form has required attribute but server-side doesn't enforce it
+        # Callsign is optional at server-side (HTML form has required attribute for UX only)
+        # When callsign is only whitespace, sanitization returns None but server accepts it
         assert response.status_code == 200
 
     @pytest.mark.unit
