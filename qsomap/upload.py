@@ -10,26 +10,26 @@ upload_bp = Blueprint('upload', __name__)
 def sanitize_text_input(text):
     """
     Sanitize text input by trimming whitespace and escaping HTML.
-    
+
     Args:
         text: Input text string or None
-        
+
     Returns:
         Sanitized string or None if input is None/empty
     """
     if text is None:
         return None
-    
+
     # Strip leading/trailing whitespace
     sanitized = text.strip()
-    
+
     # Return None for empty strings
     if not sanitized:
         return None
-    
+
     # Escape HTML to prevent XSS (returns Markup object, convert to str)
     sanitized = str(escape(sanitized))
-    
+
     return sanitized
 
 
@@ -61,7 +61,7 @@ def validate_locator(my_locator):
     """Validate locator format and flash error message if invalid, return normalized locator or None"""
     # Sanitize input
     sanitized_locator = sanitize_text_input(my_locator)
-    
+
     if not sanitized_locator:
         flash('Locator field is required.', 'error')
         return None
