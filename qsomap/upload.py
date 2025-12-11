@@ -2,8 +2,35 @@ from flask import Blueprint, render_template, request, redirect, flash, url_for
 from pyhamtools.locator import locator_to_latlong
 from qsomap.common.log_reader import read_log_file
 from qsomap.common.grid_validator import validate_grid_square
+from markupsafe import escape
 
 upload_bp = Blueprint('upload', __name__)
+
+
+def sanitize_text_input(text):
+    """
+    Sanitize text input by trimming whitespace and escaping HTML.
+    
+    Args:
+        text: Input text string or None
+        
+    Returns:
+        Sanitized string or None if input is None/empty
+    """
+    if text is None:
+        return None
+    
+    # Strip leading/trailing whitespace
+    sanitized = text.strip()
+    
+    # Return None for empty strings
+    if not sanitized:
+        return None
+    
+    # Escape HTML to prevent XSS (returns Markup object, convert to str)
+    sanitized = str(escape(sanitized))
+    
+    return sanitized
 
 
 def allowed_file(filename):
@@ -32,11 +59,14 @@ def validate_file(file):
 
 def validate_locator(my_locator):
     """Validate locator format and flash error message if invalid, return normalized locator or None"""
-    if not my_locator or not my_locator.strip():
+    # Sanitize input
+    sanitized_locator = sanitize_text_input(my_locator)
+    
+    if not sanitized_locator:
         flash('Locator field is required.', 'error')
         return None
 
-    normalized_locator = my_locator.strip().upper()
+    normalized_locator = sanitized_locator.upper()
 
     if not validate_grid_square(normalized_locator):
         flash('Invalid locator format. Please enter a valid Maidenhead locator (e.g., JO70, JO70fp, JO70fp12).', 'error')
@@ -78,8 +108,8 @@ def upload_file():
         if not validate_file(file):
             return redirect(url_for('upload.upload_file'))
 
-        # Get form data
-        callsign = request.form.get('callsign')
+        # Get form data and sanitize
+        callsign = sanitize_text_input(request.form.get('callsign'))
         my_locator = request.form.get('my_locator')
 
         # Validate locator
