@@ -205,3 +205,26 @@ class TestInputSanitization:
         assert b'QSO map' in response.data
         # Verify both fields are present and trimmed
         assert b'SP1ABC' in response.data
+
+    @pytest.mark.unit
+    def test_filename_sanitization(self, client):
+        """Test that filename with special characters is sanitized."""
+        adif_content = """<ADIF_VER:5>3.1.4
+<EOH>
+
+<QSO_DATE:8>20241101<TIME_ON:6>120000<CALL:6>SP0ABC<BAND:3>20m<MODE:2>CW<GRIDSQUARE:6>JO62AA<EOR>
+"""
+        # Filename with HTML characters that should be escaped
+        response = client.post('/upload', data={
+            'callsign': 'SP1ABC',
+            'my_locator': 'JO90AA',
+            'file': (BytesIO(adif_content.encode('utf-8')), '<script>alert.adif')
+        }, follow_redirects=True)
+
+        assert response.status_code == 200
+        # Verify filename is escaped in the response
+        response_text = response.data.decode('utf-8')
+        # Script tag should be escaped
+        assert '<script>alert.adif' not in response_text
+        # Should have escaped HTML entities
+        assert '&lt;script&gt;alert.adif' in response_text

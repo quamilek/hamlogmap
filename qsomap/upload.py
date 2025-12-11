@@ -111,6 +111,9 @@ def upload_file():
         callsign = sanitize_text_input(request.form.get('callsign'))
         my_locator = request.form.get('my_locator')
 
+        # Sanitize filename
+        filename = sanitize_text_input(file.filename) if file.filename else None
+
         # Validate locator
         normalized_locator = validate_locator(my_locator)
         if not normalized_locator:
@@ -136,7 +139,7 @@ def upload_file():
             my_latitude=my_latitude,
             my_longitude=my_longitude,
             callsign=callsign,
-            filename=file.filename
+            filename=filename
         )
 
     return render_template('main.html')
