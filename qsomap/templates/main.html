@@ -85,3 +85,42 @@
         </div>
     </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    // Automatically trim whitespace from callsign and locator fields
+    document.addEventListener('DOMContentLoaded', function() {
+        const callsignInput = document.getElementById('callsign');
+        const locatorInput = document.getElementById('my_locator');
+        
+        // Function to trim input value
+        function trimInput(input) {
+            if (input && input.value) {
+                input.value = input.value.trim();
+            }
+        }
+        
+        // Trim on blur (when user leaves the field)
+        if (callsignInput) {
+            callsignInput.addEventListener('blur', function() {
+                trimInput(this);
+            });
+        }
+        
+        if (locatorInput) {
+            locatorInput.addEventListener('blur', function() {
+                trimInput(this);
+            });
+        }
+        
+        // Trim on form submit as final safety check
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                trimInput(callsignInput);
+                trimInput(locatorInput);
+            });
+        }
+    });
+</script>
+{% endblock %}
