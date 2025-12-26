@@ -2,8 +2,9 @@
 Routes and error handlers for HamLogMap application
 """
 
+import os
 import logging
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, send_from_directory, current_app
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,12 @@ def register_routes(app):
     @app.route('/hamlogmap')
     def index():
         return render_template('main.html')
+
+    @app.route('/ham-wrapped')
+    def ham_wrapped():
+        """Serve Ham Wrapped application"""
+        ham_wrapped_dir = os.path.join(current_app.static_folder, 'ham-wrapped')
+        return send_from_directory(ham_wrapped_dir, 'index.html')
 
 
 def register_error_handlers(app):  # noqa: C901

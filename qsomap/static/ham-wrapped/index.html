@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ham Wrapped 2025</title>
+    <link rel="stylesheet" href="/static/ham-wrapped/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Ekran powitalny / Upload -->
+        <section id="upload-section" class="screen active">
+            <div class="container">
+                <div class="logo">
+                    <span class="logo-icon">📻</span>
+                    <h1 data-i18n="appTitle">Ham Wrapped</h1>
+                    <p class="subtitle">2025</p>
+                </div>
+
+                <div class="callsign-input">
+                    <label for="user-callsign" data-i18n="yourCallsign">Your callsign:</label>
+                    <input type="text" id="user-callsign" data-i18n-placeholder="callsignPlaceholder" placeholder="e.g. W1AW" maxlength="10">
+                </div>
+
+                <div class="user-locator-input">
+                    <label for="user-locator" data-i18n="yourLocator">Your locator:</label>
+                    <input type="text" id="user-locator" data-i18n-placeholder="locatorPlaceholder" placeholder="e.g. FN31pr" maxlength="6">
+                    <p class="hint" data-i18n="locatorHint">Required to calculate QSO distances</p>
+                </div>
+
+                <div class="upload-area" id="upload-area">
+                    <h2 data-i18n="uploadTitle">Upload your ADIF log</h2>
+                    <p data-i18n="uploadDragDrop">Drag and drop .adi or .adif file here</p>
+                    <p class="or" data-i18n="uploadOr">or</p>
+                    <label class="upload-btn">
+                        <span data-i18n="uploadButton">Choose file</span>
+                        <input type="file" id="file-input" accept=".adi,.adif,.ADI,.ADIF" hidden>
+                    </label>
+                </div>
+
+                <div id="loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p data-i18n="processing">Processing...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prezentacja Wrapped -->
+        <section id="presentation-section" class="screen">
+            <div class="slides-container" id="slides-container">
+                <!-- Slajdy będą generowane dynamicznie przez JavaScript -->
+            </div>
+
+            <div class="navigation">
+                <button id="prev-btn" class="nav-btn" disabled>
+                    <span>←</span>
+                </button>
+                <div class="progress-dots" id="progress-dots"></div>
+                <button id="next-btn" class="nav-btn">
+                    <span>→</span>
+                </button>
+            </div>
+
+            <button id="restart-btn" class="restart-btn">
+                🔄 <span data-i18n="restart">Start over</span>
+            </button>
+
+            <button id="share-btn" class="share-btn hidden">
+                🔗 <span data-i18n="shareLink">Copy share link</span>
+            </button>
+        </section>
+    </div>
+
+    <script src="/static/ham-wrapped/js/i18n.js"></script>
+    <script src="/static/ham-wrapped/js/dxcc-data.js"></script>
+    <script src="/static/ham-wrapped/js/callsign-lookup.js"></script>
+    <script src="/static/ham-wrapped/js/url-share.js"></script>
+    <script src="/static/ham-wrapped/js/adif-parser.js"></script>
+    <script src="/static/ham-wrapped/js/statistics.js"></script>
+    <script src="/static/ham-wrapped/js/presentation.js"></script>
+    <script src="/static/ham-wrapped/js/app.js"></script>
+</body>
+</html>
