@@ -114,6 +114,7 @@ class Presentation {
             icon: '📻',
             title: title,
             value: t('introValue'),
+            // valueSubtitle: t('appSubtitle'),
             description: t('introDescription'),
             subtitle: t('introSubtitle')
         });
@@ -806,6 +807,10 @@ class Presentation {
             content += `<span style="font-size: 0.4em; display: block;">${slide.valueUnit}</span>`;
         }
         content += '</div>';
+
+        if (slide.valueSubtitle) {
+            content += `<div class="slide-value-subtitle">${slide.valueSubtitle}</div>`;
+        }
 
         if (slide.description) {
             content += `<div class="slide-description">${slide.description}</div>`;

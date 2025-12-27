@@ -100,7 +100,7 @@ body::before {
 }
 
 .logo-icon {
-    font-size: 80px;
+    font-size: 40px;
     display: block;
     margin-bottom: 10px;
     animation: pulse 2s infinite;
@@ -139,6 +139,16 @@ body::before {
     color: var(--neon-cyan);
     margin-top: 5px;
     text-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.logo .tagline {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 15px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.8;
 }
 
 .upload-area {
@@ -371,6 +381,18 @@ body::before {
 
 .slide-value.smaller {
     font-size: 2.5rem;
+}
+
+.slide-value-subtitle {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--neon-cyan);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    opacity: 0.85;
+    text-shadow: 0 0 8px var(--neon-cyan);
 }
 
 .slide-description {
@@ -652,6 +674,12 @@ body::before {
         font-size: 2.2rem;
     }
 
+    .logo .tagline {
+        font-size: 0.75rem;
+        margin-top: 10px;
+        letter-spacing: 0.5px;
+    }
+
     #presentation-section {
         padding: 10px;
         padding-top: 45px;
@@ -696,6 +724,12 @@ body::before {
 
     .slide-value.smaller {
         font-size: 1.8rem;
+    }
+
+    .slide-value-subtitle {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
     }
 
     .slide-description {
@@ -790,6 +824,12 @@ body::before {
 
     .slide-value.smaller {
         font-size: 1.5rem;
+    }
+
+    .slide-value-subtitle {
+        font-size: 0.65rem;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
     }
 
     .navigation {
