@@ -309,7 +309,10 @@ body::before {
 .slides-container {
     width: 100%;
     max-width: 450px;
-    height: calc(100vh - 120px);
+    /* Fallback for browsers without dvh support */
+    height: calc(100vh - 140px);
+    /* Modern browsers - dynamic viewport height */
+    height: calc(100dvh - 140px);
     max-height: 850px;
     position: relative;
     margin-bottom: 20px;
@@ -683,11 +686,12 @@ body::before {
     #presentation-section {
         padding: 10px;
         padding-top: 45px;
-        padding-bottom: 70px;
+        padding-bottom: 90px;
     }
 
     .slides-container {
-        height: calc(100vh - 130px);
+        height: calc(100vh - 170px);
+        height: calc(100dvh - 170px);
         max-height: none;
     }
 
@@ -801,7 +805,8 @@ body::before {
     }
 
     .slides-container {
-        height: calc(100vh - 80px);
+        height: calc(100vh - 100px);
+        height: calc(100dvh - 100px);
     }
 
     .slide {
