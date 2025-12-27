@@ -91,7 +91,13 @@ function serializeStats(stats, userCallsign, year) {
             n: stats.byDayOfWeek.best.count
         } : null,
         // Streaks
-        st: stats.streaks?.maxStreak || 0
+        st: stats.streaks?.maxStreak || 0,
+        // Band Slots
+        bs: stats.bandSlots ? {
+            t: stats.bandSlots.totalSlots || 0,
+            d: stats.bandSlots.dxccCount || 0,
+            b: stats.bandSlots.bandCount || 0
+        } : null
     };
 
     return data;
@@ -186,6 +192,12 @@ function deserializeStats(data) {
                 count: data.dw?.n || 0 
             }
         },
+        // Band Slots
+        bandSlots: data.bs ? {
+            totalSlots: data.bs.t || 0,
+            dxccCount: data.bs.d || 0,
+            bandCount: data.bs.b || 0
+        } : null,
         // Flaga że to dane z URL
         fromUrl: true
     };

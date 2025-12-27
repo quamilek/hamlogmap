@@ -556,6 +556,43 @@ class Presentation {
             subtitle: this.getQSOComment(this.stats.totalQSOs)
         });
 
+         // 8. DXCC
+         const dxccCount = this.stats.byDXCC?.count || 0;
+         items.push({
+             icon: '🏆',
+             value: dxccCount,
+             label: 'DXCC',
+             subtitle: i18n.currentLang === 'pl' ? 'krajów' : 'countries'
+         });
+ 
+         // 8b. Band Slots
+         if (this.stats.bandSlots && this.stats.bandSlots.totalSlots > 0) {
+             items.push({
+                 icon: '🎰',
+                 value: this.formatNumber(this.stats.bandSlots.totalSlots),
+                 label: t('bandSlotsTitle'),
+                 subtitle: ''
+             });
+         }
+
+           // 7. Continents
+        const continents = this.stats.byContinent ? this.stats.byContinent.count : 0;
+        items.push({
+            icon: '🌍',
+            value: continents,
+            label: t('continentsTitle'),
+            subtitle: ''
+        });
+ 
+         // 9. CQ Zones
+         const cqZones = this.stats.byCQZone ? this.stats.byCQZone.count : 0;
+         items.push({
+             icon: '🗺️',
+             value: `${cqZones}/40`,
+             label: t('cqZonesTitle'),
+             subtitle: ''
+         });
+
         // 2. Unique callsigns
         const avgPerStation = (this.stats.totalQSOs / this.stats.uniqueCallsigns.count).toFixed(1);
         items.push({
@@ -627,42 +664,9 @@ class Presentation {
             });
         }
 
-        // 7. Continents
-        const continents = this.stats.byContinent ? this.stats.byContinent.count : 0;
-        items.push({
-            icon: '🌍',
-            value: continents,
-            label: t('continentsTitle'),
-            subtitle: ''
-        });
+      
 
-        // 8. DXCC
-        const dxccCount = this.stats.byDXCC?.count || 0;
-        items.push({
-            icon: '🏆',
-            value: dxccCount,
-            label: 'DXCC',
-            subtitle: i18n.currentLang === 'pl' ? 'krajów' : 'countries'
-        });
-
-        // 8b. Band Slots
-        if (this.stats.bandSlots && this.stats.bandSlots.totalSlots > 0) {
-            items.push({
-                icon: '🎰',
-                value: this.formatNumber(this.stats.bandSlots.totalSlots),
-                label: t('bandSlotsTitle'),
-                subtitle: ''
-            });
-        }
-
-        // 9. CQ Zones
-        const cqZones = this.stats.byCQZone ? this.stats.byCQZone.count : 0;
-        items.push({
-            icon: '🗺️',
-            value: `${cqZones}/40`,
-            label: t('cqZonesTitle'),
-            subtitle: ''
-        });
+       
 
         // 9. ODX
         if (this.stats.odx && this.stats.odx.distance) {
