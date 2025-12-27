@@ -71,7 +71,8 @@ function serializeStats(stats, userCallsign, year) {
         // Closest QSO
         cl: stats.closestQSO ? {
             c: stats.closestQSO.call,
-            d: stats.closestQSO.distance
+            d: stats.closestQSO.distance,
+            n: stats.closestQSO.dxccName
         } : null,
         // QSO Rate
         qr: stats.qsoRate?.maxRate || 0,
@@ -140,7 +141,8 @@ function deserializeStats(data) {
             distribution: {}
         },
         byDXCC: {
-            sorted: data.dx?.map(([name, count]) => ({ dxccName: name, dxcc: name, count })) || [],
+            sorted: data.dx?.map(([name, count]) => ({ dxccName: name, dxcc: name, name: name, count })) || [],
+            top5: data.dx?.map(([name, count]) => ({ dxccName: name, dxcc: name, name: name, count })) || [],
             count: data.dc || 0,
             distribution: {}
         },
@@ -156,7 +158,8 @@ function deserializeStats(data) {
         } : null,
         closestQSO: data.cl ? {
             call: data.cl.c,
-            distance: data.cl.d
+            distance: data.cl.d,
+            dxccName: data.cl.n
         } : null,
         qsoRate: { 
             maxRate: data.qr || 0,

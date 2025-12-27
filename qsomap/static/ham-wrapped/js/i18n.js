@@ -40,7 +40,7 @@ const translations = {
 
         // Slajdy - unikalne stacje
         uniqueCallsignsTitle: 'Unikalne stacje',
-        uniqueCallsignsDescription: 'Rozmawiałeś z tyloma różnymi stacjami!',
+        uniqueCallsignsDescription: 'Miałeś qso z tyloma unikalnymi znakami',
         uniqueCallsignsSubtitle: 'To średnio {avg} QSO na stację',
 
         // Slajdy - top callsigns
@@ -58,10 +58,10 @@ const translations = {
         bestDaySubtitle: 'Twój najbardziej aktywny dzień w roku!',
 
         // Slajdy - mody
-        favoriteModeTitle: 'Twój ulubiony mod',
+        favoriteModeTitle: 'Twoja ulubionya emisja',
         favoriteModeDescription: '{percentage}% wszystkich łączności',
-        favoriteModeSubtitle: '{count} QSO w tym modzie',
-        allModesTitle: 'Rozkład modów',
+        favoriteModeSubtitle: '{count} QSO w tej emisji',
+        allModesTitle: 'Rozkład emisji',
 
         // Slajdy - pasmo
         favoriteBandTitle: 'Ulubione pasmo',
@@ -80,7 +80,7 @@ const translations = {
         topDXCCTitle: 'Top 5 DXCC',
         dxccNoData: 'Brak danych o krajach DXCC',
         dxccNoDataHint: 'Sprawdź czy plik ADIF zawiera poprawne callsigns',
-        dxccSubtitle: 'Pracowałeś z {count} krajami DXCC!',
+        dxccSubtitle: 'Pracowałeś z {count} podmiotami DXCC!',
 
         // Slajdy - Band Slots
         bandSlotsTitle: 'Band Slots',
@@ -123,7 +123,7 @@ const translations = {
 
         // Slajdy - strefy CQ
         cqZonesTitle: 'Strefy CQ',
-        cqZonesDescription: 'Tyle stref CQ udało Ci się przepracować!',
+        cqZonesDescription: 'Z tyloma strefami CQ udało Ci się zrobić łączności!',
         cqZonesSubtitle: 'Na świecie jest 40 stref CQ',
 
         // Slajdy - kontesty
